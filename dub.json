@@ -1,0 +1,25 @@
+{
+	"authors": [
+		"user"
+	],
+	"copyright": "Copyright © 2020, Ferhat Kurtulmuş",
+	"dependencies": {
+		"bindbc-opengl": "~>0.12.0",
+		"bindbc-sdl": "~>0.15.0",
+		"dvector": "~>0.0.5",
+		"stringnogc": "~>0.0.3"
+	},
+	"description": "An experimental gui lib for Dlang with betterC.",
+	"license": "boost",
+    "name": "noobgui",
+    "dflags": ["-betterC"],
+    "versions": [
+        "BindSDL_TTF",
+        "GL_31", "GL_AllowDeprecated"
+    ],
+    "subConfigurations": {
+        "bindbc-sdl": "staticBC",
+        "bindbc-opengl": "dynamicBC"
+    },
+    "libs": ["SDL2", "SDL2_ttf"]
+}
