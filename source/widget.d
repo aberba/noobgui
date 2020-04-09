@@ -4,6 +4,7 @@ import core.stdc.stdio;
 
 import dvector;
 
+import globals;
 import types;
 import primitives;
 
@@ -129,7 +130,8 @@ struct Widget {
     }
 
     void setClickHandler(WidgetCallback cb){
-        onClicked = cb;
+        import std.functional;
+        onClicked = cb;//toDelegate(cb);
     }
 }
 
@@ -145,9 +147,8 @@ void draw(Window* obj){
         drawRect(obj.rect, c);
 }
 
-/// safe and fake recursion :)
-void doItForAllWindows(CB)(scope CB cb, ref Dvector!(Window*) root){
-    auto stack = root.save;
+void doItForAllWindows(CB)(scope CB cb, ref Dvector!(Window*) wins){
+    auto stack = wins.save;
     while(!stack.empty){
         immutable n = stack.length - 1;
         auto window = stack[n];
@@ -163,8 +164,8 @@ void doItForAllWindows(CB)(scope CB cb, ref Dvector!(Window*) root){
     stack.free;
 }
 
-void doItForAllWidgets(WidgetCallback cb, ref Dvector!(Window*) root){
-    auto stack = root.save;
+void doItForAllWidgets(WidgetCallback cb, ref Dvector!(Window*) wins){
+    auto stack = wins.save;
     while(!stack.empty){
         immutable n = stack.length - 1;
         auto widget = stack[n];
@@ -179,4 +180,25 @@ void doItForAllWidgets(WidgetCallback cb, ref Dvector!(Window*) root){
         }
     }
     stack.free;
+}
+
+Window* getWindowById(string id){
+    auto stack = root.children.save;
+    while(!stack.empty){
+        immutable n = stack.length - 1;
+        auto window = stack[n];
+        
+        if(window.id == id){
+            stack.free;
+            return window;
+        }
+        
+        stack.popBack;
+        if(window.children.length){
+            foreach (ref child; window.children)
+                stack.pushBack(child);
+        }
+    }
+    stack.free;
+    return null;
 }

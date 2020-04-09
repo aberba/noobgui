@@ -4,6 +4,7 @@ import bindbc.sdl;
 import bindbc.opengl;
 
 import types;
+import widget;
 
 __gshared {
     SDL_GLContext glcontext;
@@ -14,6 +15,8 @@ __gshared {
 
     int CUR_WIN_WIDTH = SCREEN_WIDTH;
     int CUR_WIN_HEIGHT = SCREEN_HEIGHT;
+
+    Sizer root;
 }
 
 @nogc nothrow:
