@@ -108,6 +108,8 @@ struct Sizer {
 
 }
 
+alias WidgetCallback = void delegate(Widget*) @nogc nothrow;
+
 struct Widget {
     Window window;
     Color color = Color(0.5f, 0.5f, 0.5f);
@@ -116,8 +118,7 @@ struct Widget {
 
     @nogc nothrow:
 
-    alias CBonClicked = void delegate(Widget*);
-    CBonClicked onClicked;
+    WidgetCallback onClicked;
 
     this(string id){
         this.id = id;
@@ -127,7 +128,7 @@ struct Widget {
         typeId = TYPE_WIDGET;
     }
 
-    void setClickHandler(CBonClicked cb){
+    void setClickHandler(WidgetCallback cb){
         onClicked = cb;
     }
 }
@@ -145,10 +146,10 @@ void draw(Window* obj){
 }
 
 /// safe and fake recursion :)
-void doItForAllWindows(Callback)(scope Callback cb, ref Dvector!(Window*) root){
+void doItForAllWindows(CB)(scope CB cb, ref Dvector!(Window*) root){
     auto stack = root.save;
     while(!stack.empty){
-        auto n = stack.length - 1;
+        immutable n = stack.length - 1;
         auto window = stack[n];
         
         cb(window);
@@ -162,10 +163,10 @@ void doItForAllWindows(Callback)(scope Callback cb, ref Dvector!(Window*) root){
     stack.free;
 }
 
-void doItForAllWidgets(Callback)(scope Callback cb, ref Dvector!(Window*) root){
+void doItForAllWidgets(WidgetCallback cb, ref Dvector!(Window*) root){
     auto stack = root.save;
     while(!stack.empty){
-        auto n = stack.length - 1;
+        immutable n = stack.length - 1;
         auto widget = stack[n];
         
         if(widget.typeId == TYPE_WIDGET && widget.as!Widget.onClicked)

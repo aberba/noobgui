@@ -5,6 +5,7 @@ import bindbc.opengl;
 import dvector;
 
 import boilerplate;
+import util;
 import primitives;
 import globals;
 import types;
@@ -18,6 +19,7 @@ extern (C) int main(){
     initSDL();
     initSDLTTF();
     initGL();
+    initUtil();
 
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -25,6 +27,13 @@ extern (C) int main(){
     vl = Sizer("vl1", vertical, Point(100, 150), 150, 200);
 
     Widget w1 = Widget("w1");
+
+    void changeColor(Widget* wid) @nogc nothrow {
+        wid.color = Color(rnd!float(0.0f, 1.0f), rnd!float(0.0f, 1.0f), rnd!float(0.0f, 1.0f));
+    }
+
+    w1.setClickHandler(&changeColor);
+
     Widget w2 = Widget("w2");
     Widget w3 = Widget("w3");
     Widget w4 = Widget("w4");
@@ -44,8 +53,10 @@ extern (C) int main(){
     h1.add(wh2);
     h1.add(wh3);
 
+    
+
     void onClicked(Widget* wi) @nogc nothrow {
-        printf("%s has clicked!\n", wi.id.ptr);
+        printf("%s has clicked! \n", wi.id.ptr);
     }
 
     wh2.setClickHandler(&onClicked);
