@@ -11,6 +11,7 @@ import primitives;
 enum: int {
     TYPE_WINDOW,
     TYPE_SIZER,
+    TYPE_FRAME,
     TYPE_WIDGET
 }
 
