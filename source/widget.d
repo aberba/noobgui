@@ -130,8 +130,7 @@ struct Widget {
     }
 
     void setClickHandler(WidgetCallback cb){
-        import std.functional;
-        onClicked = cb;//toDelegate(cb);
+        onClicked = cb;
     }
 }
 
