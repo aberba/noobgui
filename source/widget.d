@@ -116,12 +116,19 @@ struct Widget {
 
     @nogc nothrow:
 
+    alias CBonClicked = void delegate(Widget*);
+    CBonClicked onClicked;
+
     this(string id){
         this.id = id;
         
         derived = &this;
 
         typeId = TYPE_WIDGET;
+    }
+
+    void setClickHandler(CBonClicked cb){
+        onClicked = cb;
     }
 }
 
@@ -142,9 +149,27 @@ void doItForAllWindows(Callback)(scope Callback cb, ref Dvector!(Window*) root){
     auto stack = root.save;
     while(!stack.empty){
         auto n = stack.length - 1;
+        auto window = stack[n];
+        
+        cb(window);
+
+        stack.popBack;
+        if(window.children.length){
+            foreach (ref child; window.children)
+                stack.pushBack(child);
+        }
+    }
+    stack.free;
+}
+
+void doItForAllWidgets(Callback)(scope Callback cb, ref Dvector!(Window*) root){
+    auto stack = root.save;
+    while(!stack.empty){
+        auto n = stack.length - 1;
         auto widget = stack[n];
         
-        cb(widget);
+        if(widget.typeId == TYPE_WIDGET && widget.as!Widget.onClicked)
+            cb(widget.as!Widget);
 
         stack.popBack;
         if(widget.children.length){

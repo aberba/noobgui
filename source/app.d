@@ -22,7 +22,7 @@ extern (C) int main(){
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-    vl = Sizer("vl1", vertical, Point(100, 150), 80, 300);
+    vl = Sizer("vl1", vertical, Point(100, 150), 150, 200);
 
     Widget w1 = Widget("w1");
     Widget w2 = Widget("w2");
@@ -38,9 +38,18 @@ extern (C) int main(){
     
     auto wh1 = Widget("wh1");
     auto wh2 = Widget("wh2");
+    auto wh3 = Widget("wh3");
 
     h1.add(wh1);
     h1.add(wh2);
+    h1.add(wh3);
+
+    void onClicked(Widget* wi) @nogc nothrow {
+        printf("%s has clicked!\n", wi.id.ptr);
+    }
+
+    wh2.setClickHandler(&onClicked);
+    w3.setClickHandler(&onClicked);
 
     mainLoop;
 
@@ -58,32 +67,49 @@ void mainLoop(){
 
     while (!quit){
         while( SDL_PollEvent( &event ) != 0 ){
-            if(event.type == SDL_KEYDOWN){
-                switch (event.key.keysym.sym){
-                    case SDLK_ESCAPE:
-                        quit = true;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            if(event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED){
-                SDL_GetWindowSize(sdl_window, &CUR_WIN_WIDTH, &CUR_WIN_HEIGHT);
-                resize(CUR_WIN_WIDTH, CUR_WIN_HEIGHT);
-            }
-
-            if (event.type == SDL_MOUSEMOTION){
-                void cb(Window* widget) @nogc nothrow {
-                    if(widget.typeId != TYPE_SIZER &&
-                        isPointInRect(Point(event.motion.x, event.motion.y), widget.rect)){
-                        widget.hover = true;
-                    } else {
-                        widget.hover = false;
+            switch(event.type){
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    switch (event.key.keysym.sym){
+                        case SDLK_ESCAPE:
+                            quit = true;
+                            break;
+                        default:
+                            break;
                     }
-                }
+                    break;
+                case SDL_WINDOWEVENT:
+                    if(event.window.event == SDL_WINDOWEVENT_RESIZED){
+                        SDL_GetWindowSize(sdl_window, &CUR_WIN_WIDTH, &CUR_WIN_HEIGHT);
+                        resize(CUR_WIN_WIDTH, CUR_WIN_HEIGHT);
+                    }
+                    break;
+                case SDL_MOUSEMOTION:
+                    void cb(Window* widget) @nogc nothrow {
+                        if(widget.typeId != TYPE_SIZER &&
+                            isPointInRect(Point(event.motion.x, event.motion.y), widget.rect)){
+                            widget.hover = true;
+                        } else {
+                            widget.hover = false;
+                        }
+                    }
+                    doItForAllWindows( &cb, vl.children);
 
-                doItForAllWindows( &cb, vl.children);
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    void clicked(Widget* wi) @nogc nothrow {
+                        int mouseX, mouseY;
+                        SDL_GetMouseState(&mouseX, &mouseY);
+                        if(isPointInRect(Point(mouseX, mouseY), wi.rect))
+                            wi.as!Widget.onClicked(wi);
+                    }
+
+                    doItForAllWidgets( &clicked, vl.children);
+                    break;
+                default:
+                    break;
             }
         }
         glClearColor(0.8, 0.8, 1.0, 1.0);
