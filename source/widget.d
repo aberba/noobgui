@@ -19,7 +19,7 @@ enum: int {
 
 enum DRAWABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
 enum CONTAINER = TYPE_SIZER | TYPE_FRAME;
-enum CLICKABLE = TYPE_BUTTON | TYPE_TEXTCTRL;
+enum CLICKABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
 
 struct Window {
     string id;
@@ -219,14 +219,14 @@ bool isDrawable(Window* obj){
     return (obj.typeId & DRAWABLE)?true:false;
 }
 
+bool isClickable(Window* obj){
+    return (obj.typeId & CLICKABLE)?true:false;
+}
+
 // TODO: avoid dittos
 
 void drawAllWindows(ref Dvector!(Window*) wins){
-    auto stack = wins.save;
-    while(!stack.empty){
-        immutable n = stack.length - 1;
-        auto window = stack[n];
-        
+    void cb(Window* window){
         if(window.isDrawable){
             switch (window.typeId){
                 case TYPE_BUTTON:
@@ -242,14 +242,9 @@ void drawAllWindows(ref Dvector!(Window*) wins){
                     break;
             }
         }
-
-        stack.popBack;
-        if(window.children.length){
-            foreach (ref child; window.children)
-                stack.pushBack(child);
-        }
     }
-    stack.free;
+
+    doItForAllWindows( &cb, wins);
 }
 
 void doItForAllWindows(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
@@ -275,7 +270,7 @@ void doItForAllWidgets(ClickCallback cb, ref Dvector!(Window*) wins){
         immutable n = stack.length - 1;
         auto widget = stack[n];
         
-        if(widget.typeId == TYPE_WIDGET && widget.as!Widget.onClicked)
+        if(widget.isClickable && widget.as!Widget.onClicked)
             cb(widget.as!Widget);
 
         stack.popBack;

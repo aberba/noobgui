@@ -134,7 +134,7 @@ void mainLoop(){
                         int mouseX, mouseY;
                         SDL_GetMouseState(&mouseX, &mouseY);
                         if(isPointInRect(Point(mouseX, mouseY), wi.rect))
-                            wi.as!Widget.onClicked(wi);
+                            wi.onClicked(wi);
                     }
 
                     doItForAllWidgets( &clicked, root.children);
