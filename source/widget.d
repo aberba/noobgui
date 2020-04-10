@@ -7,6 +7,9 @@ import dvector;
 import globals;
 import types;
 import primitives;
+import stringnogc;
+
+alias String = dString!aumem;
 
 enum: int {
     TYPE_WINDOW = 1 << 0,
@@ -158,7 +161,7 @@ struct TextCtrl {
 
     alias widget this;
 
-    string text;
+    String text;
 
     @nogc nothrow:
     this(string id){
@@ -169,16 +172,17 @@ struct TextCtrl {
         typeId = TYPE_TEXTCTRL;
     }
 
-    this(string id, string text){
+    this(string id, string _text){
         this(id);
         this.text = text;
     }
 
     void draw(){
-        if(hover)
-            drawRect!SOLID(rect, color);
-        else
-            drawRect(rect, color);
+        drawRect!SOLID(rect, Color(1.0f, 1.0f, 1.0f));
+        // TODO: get keyboard input to fill TextCtrl
+        import bindbc.sdl;
+        if(text.total)
+            renderText(text.slice.ptr, SDL_Color(0,0,0), x+10, y+10, 22);
     }
 }
 
@@ -196,6 +200,8 @@ struct Button {
         derived = &this;
 
         typeId = TYPE_BUTTON;
+
+        color = Color(0.2, 0.8, 0.8);
     }
 
     this(string id, string label){
@@ -223,7 +229,22 @@ bool isClickable(Window* obj){
     return (obj.typeId & CLICKABLE)?true:false;
 }
 
-// TODO: avoid dittos
+void doItForAllWindows(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
+    auto stack = wins.save;
+    while(!stack.empty){
+        immutable n = stack.length - 1;
+        auto window = stack[n];
+        
+        cb(window);
+
+        stack.popBack;
+        if(window.children.length){
+            foreach (ref child; window.children)
+                stack.pushBack(child);
+        }
+    }
+    stack.free;
+}
 
 void drawAllWindows(ref Dvector!(Window*) wins){
     void cb(Window* window){
@@ -247,13 +268,27 @@ void drawAllWindows(ref Dvector!(Window*) wins){
     doItForAllWindows( &cb, wins);
 }
 
-void doItForAllWindows(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
+
+
+void processClickEvents(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
+    void injection(Window* win){
+        root.focused = win;
+        if(win.isClickable && win.as!Widget.onClicked){
+            cb(win.as!Widget);
+        }
+    }
+
+    doItForAllWindows(&injection,  wins);
+}
+
+void processTextInput(char* c, ref Dvector!(Window*) wins){
     auto stack = wins.save;
     while(!stack.empty){
         immutable n = stack.length - 1;
         auto window = stack[n];
         
-        cb(window);
+        if(window.typeId == TYPE_TEXTCTRL && window == root.focused)
+            window.as!TextCtrl.text.addCharP(c);
 
         stack.popBack;
         if(window.children.length){
@@ -264,22 +299,12 @@ void doItForAllWindows(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
     stack.free;
 }
 
-void doItForAllWidgets(ClickCallback cb, ref Dvector!(Window*) wins){
-    auto stack = wins.save;
-    while(!stack.empty){
-        immutable n = stack.length - 1;
-        auto widget = stack[n];
-        
-        if(widget.isClickable && widget.as!Widget.onClicked)
-            cb(widget.as!Widget);
-
-        stack.popBack;
-        if(widget.children.length){
-            foreach (ref child; widget.children)
-                stack.pushBack(child);
-        }
+void requestBSpace(ref Dvector!(Window*) wins){
+    void injection(Window* window){
+        if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.text.length > 0)
+            window.as!TextCtrl.text.remove( window.as!TextCtrl.text.length - 1 );
     }
-    stack.free;
+    doItForAllWindows(&injection, wins);
 }
 
 Window* getWindowById(string id){

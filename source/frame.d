@@ -10,6 +10,8 @@ struct Frame {
     Sizer sizer;
     alias sizer this;
 
+    Window* focused;
+    
     @nogc nothrow:
     
     this(string id){

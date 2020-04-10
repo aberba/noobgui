@@ -55,7 +55,7 @@ int initSDLTTF(){
 
 int createCtx(){
     sdl_window = SDL_CreateWindow(
-        "SDL2/OpenGL Demo", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 
+        "NoobGui Demo", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 
         SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
     
     glcontext = SDL_GL_CreateContext(sdl_window);

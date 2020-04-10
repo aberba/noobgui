@@ -42,7 +42,7 @@ void renderText(const(char)* message, SDL_Color color, int x, int y, int size) {
     glEnable(GL_TEXTURE_2D);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    TTF_Font *font = TTF_OpenFont( "Fontin-Regular.ttf", size );
+    TTF_Font *font = TTF_OpenFont("SourceSansPro-Semibold.ttf", size );
     
     SDL_Surface * sFont = TTF_RenderText_Blended(font, message, color);
 

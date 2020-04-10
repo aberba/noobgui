@@ -3,6 +3,7 @@ import core.stdc.stdio;
 import bindbc.sdl;
 import bindbc.opengl;
 import dvector;
+import stringnogc;
 
 import boilerplate;
 import util;
@@ -13,6 +14,9 @@ import widget;
 import frame;
 
 @nogc nothrow:
+
+alias dStringm = dString!aumem;
+
 
 extern (C) int main(){
     initSDL();
@@ -38,9 +42,18 @@ extern (C) int main(){
 
     Widget w2 = Widget("w2");
     Widget w3 = Widget("w3");
+
     Button button1 = Button("button1", "Click me for nothing!");
     Sizer h1 = Sizer("h1", horizontal);
 
+    auto text1 = TextCtrl("text1");
+    string pff = "Can you do utf8? Yaparım minnoş";
+    text1.text.addString(pff);
+
+    auto text2 = TextCtrl("text2");
+
+    root.add(text1);
+    root.add(text2);
     root.add(w1);
     root.add(w2);
     root.add(h1); // another Sizer
@@ -104,6 +117,9 @@ void mainLoop(){
                         case SDLK_ESCAPE:
                             quit = true;
                             break;
+                        case SDLK_BACKSPACE:
+                            requestBSpace(root.children);
+                            break;
                         default:
                             break;
                     }
@@ -133,11 +149,16 @@ void mainLoop(){
                     void clicked(Widget* wi) @nogc nothrow {
                         int mouseX, mouseY;
                         SDL_GetMouseState(&mouseX, &mouseY);
-                        if(isPointInRect(Point(mouseX, mouseY), wi.rect))
+                        
+                        if(isPointInRect(Point(mouseX, mouseY), wi.rect)){
                             wi.onClicked(wi);
+                        }
                     }
 
-                    doItForAllWidgets( &clicked, root.children);
+                    processClickEvents( &clicked, root.children);
+                    break;
+                case SDL_TEXTINPUT:
+                    processTextInput(event.text.text.ptr, root.children);
                     break;
                 default:
                     break;
