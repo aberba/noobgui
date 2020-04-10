@@ -192,9 +192,9 @@ struct TextCtrl {
     void draw(){
         drawRect!SOLID(rect, Color(1.0f, 1.0f, 1.0f));
         // TODO: get keyboard input to fill TextCtrl
-        import bindbc.sdl;
+        
         if(text.total > 0)
-            renderText(text.slice.ptr, SDL_Color(0,0,0), x+10, y+10, 22);
+            renderText(text.slice.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
     }
 }
 
@@ -228,8 +228,8 @@ struct Button {
             drawRect!SOLID(rect, color);
         else
             drawRect(rect, color);
-        import bindbc.sdl;
-        renderText(label.ptr, SDL_Color(0,0,0), x+10, y+10, 22);
+        
+        renderText(label.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
     }
 }
 

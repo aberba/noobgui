@@ -35,7 +35,7 @@ void drawRect(Filling = HOLLOW)(Rect r, Color cl){
     glEnd();
 }
 
-void renderText(const(char)* message, SDL_Color color, int x, int y, int size) {
+void renderText(const(char)* message, Color color, int x, int y, int size) {
     import bindbc.sdl.ttf;
 
     glEnable(GL_BLEND);
@@ -44,7 +44,9 @@ void renderText(const(char)* message, SDL_Color color, int x, int y, int size) {
 
     TTF_Font *font = TTF_OpenFont("SourceSansPro-Semibold.ttf", size );
     
-    SDL_Surface * sFont = TTF_RenderUTF8_Blended(font, message, color);
+    auto _color = SDL_Color(cast(ubyte)(color.r*255), cast(ubyte)(color.g*255), cast(ubyte)(color.b*255));
+
+    SDL_Surface * sFont = TTF_RenderUTF8_Blended(font, message, _color);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
