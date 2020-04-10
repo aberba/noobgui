@@ -51,7 +51,7 @@ extern (C) int main(){
     
     text1.text = "Your text goes here!";
 
-    auto text2 = TextCtrl("text2", "another text");
+    auto text2 = TextCtrl("text2", "Can you do utf-8? Ğğüşşiiççıı");
 
     root.add(text1);
     root.add(text2);

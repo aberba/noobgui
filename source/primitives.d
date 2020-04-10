@@ -44,7 +44,7 @@ void renderText(const(char)* message, SDL_Color color, int x, int y, int size) {
 
     TTF_Font *font = TTF_OpenFont("SourceSansPro-Semibold.ttf", size );
     
-    SDL_Surface * sFont = TTF_RenderText_Blended(font, message, color);
+    SDL_Surface * sFont = TTF_RenderUTF8_Blended(font, message, color);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

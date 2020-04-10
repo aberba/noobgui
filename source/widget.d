@@ -302,7 +302,7 @@ void processTextInput(char* c, ref Dvector!(Window*) wins){
         auto window = stack[n];
         
         if(window.typeId == TYPE_TEXTCTRL && window == root.focused){
-            window.as!TextCtrl.text.addChar(*c);
+            window.as!TextCtrl.text.addCharP(c);
             break;// only one widget can have focus at the same time
         }
 
