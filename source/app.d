@@ -15,8 +15,7 @@ import frame;
 
 @nogc nothrow:
 
-alias dStringm = dString!aumem;
-
+alias String = dString!aumem;
 
 extern (C) int main(){
     initSDL();
@@ -43,14 +42,16 @@ extern (C) int main(){
     Widget w2 = Widget("w2");
     Widget w3 = Widget("w3");
 
-    Button button1 = Button("button1", "Click me for nothing!");
+    Button button1 = Button("button1", "Click me change color of w2!");
+    Button button2 = Button("button2", "Click me for nothing!");
+
     Sizer h1 = Sizer("h1", horizontal);
 
     auto text1 = TextCtrl("text1");
-    string pff = "Can you do utf8? Yaparım minnoş";
-    text1.text.addString(pff);
+    
+    text1.text = "Your text goes here!";
 
-    auto text2 = TextCtrl("text2");
+    auto text2 = TextCtrl("text2", "another text");
 
     root.add(text1);
     root.add(text2);
@@ -59,6 +60,7 @@ extern (C) int main(){
     root.add(h1); // another Sizer
     root.add(w3);
     root.add(button1);
+    root.add(button2);
 
     button1.setClickHandler(delegate void(Widget* widget){
         
@@ -151,7 +153,9 @@ void mainLoop(){
                         SDL_GetMouseState(&mouseX, &mouseY);
                         
                         if(isPointInRect(Point(mouseX, mouseY), wi.rect)){
+                            root.focused = &wi.window;
                             wi.onClicked(wi);
+                            printf("%s focused \n", root.focused.id.ptr);
                         }
                     }
 

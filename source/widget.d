@@ -126,6 +126,14 @@ struct Sizer {
 
 alias ClickCallback = void delegate(Widget*) @nogc nothrow;
 
+const char[] defCB = "
+    void defaultWidgetCB(Widget* wid){
+        root.focused = &wid.window;
+    }
+        
+    onClicked = &defaultWidgetCB;
+";
+
 struct Widget {
     Window window;
     Color color = Color(0.5f, 0.5f, 0.5f);
@@ -142,6 +150,8 @@ struct Widget {
         derived = &this;
 
         typeId = TYPE_WIDGET;
+
+        mixin(defCB);
     }
 
     void setClickHandler(ClickCallback cb){
@@ -170,9 +180,11 @@ struct TextCtrl {
         derived = &this;
 
         typeId = TYPE_TEXTCTRL;
+
+        mixin(defCB);
     }
 
-    this(string id, string _text){
+    this(string id, string text){
         this(id);
         this.text = text;
     }
@@ -181,7 +193,7 @@ struct TextCtrl {
         drawRect!SOLID(rect, Color(1.0f, 1.0f, 1.0f));
         // TODO: get keyboard input to fill TextCtrl
         import bindbc.sdl;
-        if(text.total)
+        if(text.total > 0)
             renderText(text.slice.ptr, SDL_Color(0,0,0), x+10, y+10, 22);
     }
 }
@@ -202,6 +214,8 @@ struct Button {
         typeId = TYPE_BUTTON;
 
         color = Color(0.2, 0.8, 0.8);
+
+        mixin(defCB);
     }
 
     this(string id, string label){
@@ -268,13 +282,13 @@ void drawAllWindows(ref Dvector!(Window*) wins){
     doItForAllWindows( &cb, wins);
 }
 
-
-
 void processClickEvents(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
     void injection(Window* win){
-        root.focused = win;
-        if(win.isClickable && win.as!Widget.onClicked){
+        
+        if(win.isClickable){
+            
             cb(win.as!Widget);
+            
         }
     }
 
@@ -287,8 +301,10 @@ void processTextInput(char* c, ref Dvector!(Window*) wins){
         immutable n = stack.length - 1;
         auto window = stack[n];
         
-        if(window.typeId == TYPE_TEXTCTRL && window == root.focused)
-            window.as!TextCtrl.text.addCharP(c);
+        if(window.typeId == TYPE_TEXTCTRL && window == root.focused){
+            window.as!TextCtrl.text.addChar(*c);
+            break;// only one widget can have focus at the same time
+        }
 
         stack.popBack;
         if(window.children.length){
@@ -302,8 +318,9 @@ void processTextInput(char* c, ref Dvector!(Window*) wins){
 void requestBSpace(ref Dvector!(Window*) wins){
     void injection(Window* window){
         if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.text.length > 0)
-            window.as!TextCtrl.text.remove( window.as!TextCtrl.text.length - 1 );
+            window.as!TextCtrl.text.popBack();
     }
+    
     doItForAllWindows(&injection, wins);
 }
 
