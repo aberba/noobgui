@@ -38,16 +38,16 @@ extern (C) int main(){
 
     Widget w2 = Widget("w2");
     Widget w3 = Widget("w3");
-    Widget w4 = Widget("w4");
+    Button button1 = Button("button1", "Click me for nothing!");
     Sizer h1 = Sizer("h1", horizontal);
 
     root.add(w1);
     root.add(w2);
     root.add(h1); // another Sizer
     root.add(w3);
-    root.add(w4);
+    root.add(button1);
 
-    w4.setClickHandler(delegate void(Widget* widget){
+    button1.setClickHandler(delegate void(Widget* widget){
         
         auto other = getWindowById("w2");
 
@@ -148,7 +148,7 @@ void mainLoop(){
 
         //drawRect(Rect(100, 150, 80, 300), Color(1.0f, 0.5f, 0.5f));// debug
         
-        doItForAllWindows( &draw, root.children);
+        drawAllWindows(root.children);
 
         SDL_GL_SwapWindow(sdl_window);
     }

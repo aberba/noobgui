@@ -9,13 +9,17 @@ import types;
 import primitives;
 
 enum: int {
-    TYPE_WINDOW = 1,
-    TYPE_SIZER = 2,
-    TYPE_FRAME = 4,
-    TYPE_WIDGET = 8
+    TYPE_WINDOW = 1 << 0,
+    TYPE_SIZER = 1 << 1,
+    TYPE_FRAME = 1 << 2,
+    TYPE_WIDGET = 1 << 3,
+    TYPE_BUTTON = 1 << 4,
+    TYPE_TEXTCTRL = 1 << 5
 }
 
+enum DRAWABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
 enum CONTAINER = TYPE_SIZER | TYPE_FRAME;
+enum CLICKABLE = TYPE_BUTTON | TYPE_TEXTCTRL;
 
 struct Window {
     string id;
@@ -28,13 +32,18 @@ struct Window {
 
     void* derived;
 
-    auto as(T)(){
-        return cast(T*)derived;
-    }
-    
     alias rect this;
 
     int typeId = TYPE_WINDOW;
+
+    @nogc nothrow:
+
+    auto as(T)(){
+        return cast(T*)derived;
+    }
+
+    //void draw(){}
+
 }
 
 enum {
@@ -112,7 +121,7 @@ struct Sizer {
 
 }
 
-alias WidgetCallback = void delegate(Widget*) @nogc nothrow;
+alias ClickCallback = void delegate(Widget*) @nogc nothrow;
 
 struct Widget {
     Window window;
@@ -122,7 +131,7 @@ struct Widget {
 
     @nogc nothrow:
 
-    WidgetCallback onClicked;
+    ClickCallback onClicked;
 
     this(string id){
         this.id = id;
@@ -132,24 +141,118 @@ struct Widget {
         typeId = TYPE_WIDGET;
     }
 
-    void setClickHandler(WidgetCallback cb){
+    void setClickHandler(ClickCallback cb){
         onClicked = cb;
+    }
+
+    void draw(){
+        if(hover)
+            drawRect!SOLID(rect, color);
+        else
+            drawRect(rect, color);
+    }
+}
+
+struct TextCtrl {
+    Widget widget;
+
+    alias widget this;
+
+    string text;
+
+    @nogc nothrow:
+    this(string id){
+        this.id = id;
+        
+        derived = &this;
+
+        typeId = TYPE_TEXTCTRL;
+    }
+
+    this(string id, string text){
+        this(id);
+        this.text = text;
+    }
+
+    void draw(){
+        if(hover)
+            drawRect!SOLID(rect, color);
+        else
+            drawRect(rect, color);
+    }
+}
+
+struct Button {
+    Widget widget;
+
+    alias widget this;
+
+    string label = "undefined";
+
+    @nogc nothrow:
+    this(string id){
+        this.id = id;
+        
+        derived = &this;
+
+        typeId = TYPE_BUTTON;
+    }
+
+    this(string id, string label){
+        this(id);
+        this.label = label;
+    }
+
+    void draw(){
+        if(hover)
+            drawRect!SOLID(rect, color);
+        else
+            drawRect(rect, color);
+        import bindbc.sdl;
+        renderText(label.ptr, SDL_Color(0,0,0), x+10, y+10, 22);
     }
 }
 
 @nogc nothrow:
 
-void draw(Window* obj){
-    //if(obj.typeId == TYPE_SIZER)
-    //    return;
-    auto c = obj.as!Widget.color;
-    if(obj.hover)
-        drawRect!SOLID(obj.rect, c);
-    else
-        drawRect(obj.rect, c);
+bool isDrawable(Window* obj){
+    return (obj.typeId & DRAWABLE)?true:false;
 }
 
-void doItForAllWindows(CB)(scope CB cb, ref Dvector!(Window*) wins){
+// TODO: avoid dittos
+
+void drawAllWindows(ref Dvector!(Window*) wins){
+    auto stack = wins.save;
+    while(!stack.empty){
+        immutable n = stack.length - 1;
+        auto window = stack[n];
+        
+        if(window.isDrawable){
+            switch (window.typeId){
+                case TYPE_BUTTON:
+                    window.as!Button.draw();
+                    break;
+                case TYPE_TEXTCTRL:
+                    window.as!TextCtrl.draw();
+                    break;
+                case TYPE_WIDGET:
+                    window.as!Widget.draw();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        stack.popBack;
+        if(window.children.length){
+            foreach (ref child; window.children)
+                stack.pushBack(child);
+        }
+    }
+    stack.free;
+}
+
+void doItForAllWindows(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
     auto stack = wins.save;
     while(!stack.empty){
         immutable n = stack.length - 1;
@@ -166,7 +269,7 @@ void doItForAllWindows(CB)(scope CB cb, ref Dvector!(Window*) wins){
     stack.free;
 }
 
-void doItForAllWidgets(WidgetCallback cb, ref Dvector!(Window*) wins){
+void doItForAllWidgets(ClickCallback cb, ref Dvector!(Window*) wins){
     auto stack = wins.save;
     while(!stack.empty){
         immutable n = stack.length - 1;
