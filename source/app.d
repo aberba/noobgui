@@ -42,7 +42,7 @@ extern (C) int main(){
     Widget w2 = Widget("w2");
     Widget w3 = Widget("w3");
 
-    Button button1 = Button("button1", "Click me change color of w2!");
+    Button button1 = Button("button1", "Click me to change color of w2!");
     Button button2 = Button("button2", "Click me for nothing!");
 
     Sizer h1 = Sizer("h1", horizontal);
