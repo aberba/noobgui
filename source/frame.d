@@ -10,6 +10,8 @@ struct Frame {
     Sizer sizer;
     alias sizer this;
 
+    @nogc nothrow:
+    
     this(string id){
         this.id = id;
         this.typeId = TYPE_FRAME;

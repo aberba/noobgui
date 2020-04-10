@@ -9,11 +9,13 @@ import types;
 import primitives;
 
 enum: int {
-    TYPE_WINDOW,
-    TYPE_SIZER,
-    TYPE_FRAME,
-    TYPE_WIDGET
+    TYPE_WINDOW = 1,
+    TYPE_SIZER = 2,
+    TYPE_FRAME = 4,
+    TYPE_WIDGET = 8
 }
+
+enum CONTAINER = TYPE_SIZER | TYPE_FRAME;
 
 struct Window {
     string id;
@@ -86,7 +88,7 @@ struct Sizer {
                 child.h = h;
                 child.pos = Point(cast(int)(this.x + i * (child.w + padding) + padding), this.y);
                 
-                if(child.typeId == TYPE_SIZER){
+                if(child.typeId & CONTAINER ){
                     child.as!Sizer.layout();
                 }
             }
@@ -96,7 +98,7 @@ struct Sizer {
                 child.h = cast(int)((this.h - (children.length + 1) * padding) / children.length);
                 child.pos = Point(this.x, cast(int)(this.y + i * (child.h + padding) + padding));
                 
-                if(child.typeId == TYPE_SIZER){
+                if(child.typeId & CONTAINER ){
                     child.as!Sizer.layout();
                 }
             }

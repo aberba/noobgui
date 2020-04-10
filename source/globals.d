@@ -5,18 +5,19 @@ import bindbc.opengl;
 
 import types;
 import widget;
+import frame;
 
 __gshared {
     SDL_GLContext glcontext;
     SDL_Window *sdl_window;
 
-    enum SCREEN_WIDTH  = 800;
-    enum SCREEN_HEIGHT = 600;
+    enum SCREEN_WIDTH  = 640;
+    enum SCREEN_HEIGHT = 480;
 
     int CUR_WIN_WIDTH = SCREEN_WIDTH;
     int CUR_WIN_HEIGHT = SCREEN_HEIGHT;
 
-    Sizer root;
+    Frame root;
 }
 
 @nogc nothrow:

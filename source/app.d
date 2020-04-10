@@ -10,6 +10,7 @@ import primitives;
 import globals;
 import types;
 import widget;
+import frame;
 
 @nogc nothrow:
 
@@ -22,7 +23,7 @@ extern (C) int main(){
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-    root = Sizer("root", vertical, Point(100, 150), 150, 200);
+    root = Frame("root");
 
     Widget w1 = Widget("w1");
 
@@ -111,6 +112,9 @@ void mainLoop(){
                     if(event.window.event == SDL_WINDOWEVENT_RESIZED){
                         SDL_GetWindowSize(sdl_window, &CUR_WIN_WIDTH, &CUR_WIN_HEIGHT);
                         resize(CUR_WIN_WIDTH, CUR_WIN_HEIGHT);
+                        root.w = CUR_WIN_WIDTH;
+                        root.h = CUR_WIN_HEIGHT;
+                        root.layout;
                     }
                     break;
                 case SDL_MOUSEMOTION:
