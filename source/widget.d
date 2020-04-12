@@ -328,8 +328,8 @@ void requestBSpace(ref Dvector!(Window*) wins){
             string mstring = window.as!TextCtrl.text.str;
             ubyte* mstr = cast(ubyte*)malloc((mstring.sizeof / ubyte.sizeof) * mstring.length);
             memcpy(mstr, mstring.ptr, (mstring.sizeof / ubyte.sizeof) * mstring.length);
-            ubyte** dst = cast(ubyte**)malloc((ubyte*).sizeof * mstring.sizeof);
-            auto size = utf8proc_map(mstr, mstring.sizeof, dst, UTF8PROC_NULLTERM);
+            ubyte* dst;
+            auto size = utf8proc_map(mstr, mstring.sizeof, &dst, UTF8PROC_NULLTERM);
             utf8proc_int32_t data;
             utf8proc_ssize_t n;
             utf8proc_uint8_t* char_ptr = mstr;
@@ -346,7 +346,7 @@ void requestBSpace(ref Dvector!(Window*) wins){
             foreach (i; 0..last){
                 window.as!TextCtrl.text.popBack();
             }
-            printf("len: %d \n", window.as!TextCtrl.text.length);
+            //printf("len: %d \n", window.as!TextCtrl.text.length);
             free(mstr);
             free(dst);
         }
