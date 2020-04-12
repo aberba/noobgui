@@ -7,7 +7,8 @@
 		"bindbc-opengl": "~>0.12.0",
 		"bindbc-sdl": "~>0.15.0",
 		"dvector": "~>0.0.5",
-		"stringnogc": "~>0.0.4"
+        "stringnogc": "~>0.0.4",
+        "utf8proc": "0.0.1"
 	},
 	"description": "An experimental gui lib for Dlang with betterC.",
 	"license": "boost",

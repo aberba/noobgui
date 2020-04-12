@@ -315,10 +315,41 @@ void processTextInput(char* c, ref Dvector!(Window*) wins){
     stack.free;
 }
 
+import utf8proc;
+
 void requestBSpace(ref Dvector!(Window*) wins){
+    import core.stdc.stdlib;
+    import core.stdc.string;
+    import utf8proc;
+
     void injection(Window* window){
-        if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.text.length > 0)
-            window.as!TextCtrl.text.popBack();
+        if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.text.total > 0){
+            //window.as!TextCtrl.text.popBack();
+            string mstring = window.as!TextCtrl.text.str;
+            ubyte* mstr = cast(ubyte*)malloc((mstring.sizeof / ubyte.sizeof) * mstring.length);
+            memcpy(mstr, mstring.ptr, (mstring.sizeof / ubyte.sizeof) * mstring.length);
+            ubyte** dst = cast(ubyte**)malloc((ubyte*).sizeof * mstring.sizeof);
+            auto size = utf8proc_map(mstr, mstring.sizeof, dst, UTF8PROC_NULLTERM);
+            utf8proc_int32_t data;
+            utf8proc_ssize_t n;
+            utf8proc_uint8_t* char_ptr = mstr;
+
+            size_t nchar;
+            size_t last;
+            while ((n = utf8proc_iterate(char_ptr, size, &data)) > 0) {
+                //printf("%.*s \n", cast(int)n, char_ptr);
+                char_ptr += n;
+                size -= n;
+                nchar++;
+                last = n;
+            }
+            foreach (i; 0..last){
+                window.as!TextCtrl.text.popBack();
+            }
+            printf("len: %d \n", window.as!TextCtrl.text.length);
+            free(mstr);
+            free(dst);
+        }
     }
     
     doItForAllWindows(&injection, wins);
