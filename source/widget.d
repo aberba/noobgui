@@ -193,7 +193,7 @@ struct TextCtrl {
         drawRect!SOLID(rect, Color(1.0f, 1.0f, 1.0f));
         // TODO: get keyboard input to fill TextCtrl
         
-        if(text.total > 0)
+        if(text.length > 0)
             renderText(text.slice.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
     }
 }
@@ -323,7 +323,7 @@ void requestBSpace(ref Dvector!(Window*) wins){
     import utf8proc;
 
     void injection(Window* window){
-        if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.text.total > 0){
+        if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.text.length > 0){
             //window.as!TextCtrl.text.popBack();
             string mstring = window.as!TextCtrl.text.str;
             ubyte* mstr = cast(ubyte*)malloc((mstring.sizeof / ubyte.sizeof) * mstring.length);
