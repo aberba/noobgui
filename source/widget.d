@@ -2,6 +2,7 @@ module widget;
 
 import core.stdc.stdio;
 
+import bindbc.sdl;
 import dvector;
 
 import globals;
@@ -166,12 +167,21 @@ struct Widget {
     }
 }
 
+import bindbc.sdl.ttf;
+import util;
+
 struct TextCtrl {
     Widget widget;
 
     alias widget this;
 
-    String text;
+    Dvector!(char*) utf8cv;
+    TTF_Font *font;
+
+    int leftTextOffset = 8;
+
+    size_t cursorInd;
+    int cursorX = 0;
 
     @nogc nothrow:
     this(string id){
@@ -181,7 +191,31 @@ struct TextCtrl {
 
         typeId = TYPE_TEXTCTRL;
 
-        mixin(defCB);
+        void widgetCB(Widget* wid){
+            root.focused = &wid.window;
+            wid.as!TextCtrl.computeClickedIndex();
+        }
+        onClicked = &widgetCB;
+    }
+
+    void computeClickedIndex(){
+        if(font is null || !utf8cv.length)
+            return;
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        auto localx = mouseX - x;
+        if(localx < 0)
+            return;
+        size_t accum = leftTextOffset;
+        foreach (i, ref c; utf8cv){
+            accum += getUTF8CharWidth(c, font);
+            if(accum > localx){
+                cursorInd = i + 1;
+                cursorX = cast(int)accum;
+                printf("clicked index %d\n", cursorInd);
+                return;
+            }
+        }
     }
 
     this(string id, string text){
@@ -189,27 +223,74 @@ struct TextCtrl {
         this.text = text;
     }
 
+    @property void text(string str){
+        getUTF8CharPVector(str, utf8cv);
+    }
+
+    @property string text(){
+        return composeText(utf8cv);
+    }
+
+    void addCharP(char* cptr){
+        import core.stdc.string;
+        import core.stdc.stdlib;
+        char* mstr = cast(char*)malloc(strlen(cptr)*char.sizeof + 1);
+        sprintf(mstr, "%.*s", strlen(cptr), cptr);
+
+        utf8cv.insert(mstr, cursorInd++);
+
+        auto newCharWidth = getUTF8CharWidth(cptr, font);
+        cursorX += newCharWidth;
+    }
+
+    void delBack(){
+        auto delCharWidth = getUTF8CharWidth(utf8cv[cursorInd-1], font);
+        utf8cv.remove(--cursorInd);
+        cursorX -= delCharWidth;
+    }
+
+    void freeCV(){
+        import core.stdc.stdlib;
+        foreach (ref c; utf8cv)
+            free(c);
+        utf8cv.free;
+    }
+
+    ~this(){
+        freeCV();
+    }
+
     void draw(){
         drawRect!SOLID(rect, Color(1.0f, 1.0f, 1.0f));
         
         if(text.length > 0)
-            renderText(text.slice.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
+            renderText(text.ptr, Color(0.0f,0.0f,0.0f), x + leftTextOffset, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
         
         // draw a cursor
         // TODO: make font a struct member
-        import bindbc.sdl.ttf;
-        TTF_Font *font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(h*0.6f) );
+        
+        font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(h*0.6f) );
         int f_w, f_h; 
-        TTF_SizeUTF8(font, text.slice.ptr, &f_w, &f_h);
+        TTF_SizeUTF8(font, text.ptr, &f_w, &f_h);
+
+        if(utf8cv.length){
+            //auto lastWidth = getUTF8CharWidth(utf8cv[$-1], font);
+            //printf("width: %d \n", lastWidth);
+        }
+
         TTF_CloseFont(font);
         
-        import util: utflen;
         if(root.focused == &window)
             line(
-                Point(x + 8 + f_w, y + cast(int)(h*0.15f)),
-                Point(x + 8 + f_w, y + h - cast(int)(h*0.15f)),
+                Point(cursorX, y + cast(int)(h*0.15f)),
+                Point(cursorX, y + h - cast(int)(h*0.15f)),
+                Color(0.5f, 0.5f, 0.5f));
+            /*line(
+                Point(x + leftTextOffset + f_w, y + cast(int)(h*0.15f)),
+                Point(x + leftTextOffset + f_w, y + h - cast(int)(h*0.15f)),
                 Color(0.5f, 0.5f, 0.5f)
             );
+            */
     }
 }
 
@@ -317,7 +398,7 @@ void processTextInput(char* c, ref Dvector!(Window*) wins){
         auto window = stack[n];
         
         if(window.typeId == TYPE_TEXTCTRL && window == root.focused){
-            window.as!TextCtrl.text.addCharP(c);
+            window.as!TextCtrl.addCharP(c);
             break;// only one widget can have focus at the same time
         }
 
@@ -338,32 +419,8 @@ void requestBSpace(ref Dvector!(Window*) wins){
     import utf8proc;
 
     void injection(Window* window){
-        if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.text.length > 0){
-            //window.as!TextCtrl.text.popBack();
-            string mstring = window.as!TextCtrl.text.str;
-            ubyte* mstr = cast(ubyte*)malloc(mstring.length+1);
-            memcpy(mstr, mstring.ptr, mstring.length+1);
-            ubyte* dst;
-            auto size = utf8proc_map(mstr, mstring.length, &dst, UTF8PROC_NULLTERM);
-            utf8proc_int32_t data;
-            utf8proc_ssize_t n;
-            utf8proc_uint8_t* char_ptr = mstr;
-
-            size_t nchar;
-            size_t last;
-            while ((n = utf8proc_iterate(char_ptr, size, &data)) > 0) {
-                //printf("%.*s \n", cast(int)n, char_ptr);
-                char_ptr += n;
-                size -= n;
-                nchar++;
-                last = n;
-            }
-            foreach (i; 0..last){
-                window.as!TextCtrl.text.popBack();
-            }
-            //printf("len: %d \n", window.as!TextCtrl.text.length);
-            free(mstr);
-            free(dst);
+        if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.utf8cv.length > 0){
+            window.as!TextCtrl.delBack();
         }
     }
     

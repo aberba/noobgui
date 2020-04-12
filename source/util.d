@@ -23,40 +23,11 @@ void initUtil() {
 
 import utf8proc;
 
-size_t utflen(string mstring ){
-
-    ubyte* mstr = cast(ubyte*)malloc(mstring.length+1);
-    memcpy(mstr, mstring.ptr, mstring.length+1);
-
-    ubyte* dst;
-
-    auto sz = utf8proc_map(mstr, mstring.length, &dst, UTF8PROC_NULLTERM);
-
-    utf8proc_ssize_t size = sz;
-    utf8proc_int32_t data;
-    utf8proc_ssize_t n;
-
-    ubyte* char_ptr = mstr;
-
-    size_t nchar;
-
-    while ((n = utf8proc_iterate(char_ptr, size, &data)) > 0) {
-        char_ptr += n;
-        size -= n;
-        nchar++;
-    }
-
-    free(mstr);
-    free(dst);
-    return nchar;
-}
-
 void getUTF8CharPVector(string mstring, ref Dvector!(char*) utf8cv){
     
     ubyte* mstr = cast(ubyte*)malloc(mstring.length + 1);
     memcpy(mstr, mstring.ptr, mstring.length + 1);
-
-    // some buffer for output. 
+    
     ubyte* dst;
 
     utf8proc_ssize_t size = utf8proc_map(mstr, mstring.length, &dst, UTF8PROC_NULLTERM);
@@ -82,4 +53,26 @@ void getUTF8CharPVector(string mstring, ref Dvector!(char*) utf8cv){
 
     free(mstr);
     free(dst);
+}
+
+import bindbc.sdl.ttf;
+int getUTF8CharWidth(char* utf8c, TTF_Font *font){
+    int w = 16, h;
+    
+    TTF_SizeUTF8(font, utf8c, &w, &h);
+    return w;
+}
+
+string composeText(ref Dvector!(char*) cv){
+    
+    import stringnogc;
+    alias String = dString!aumem;
+
+    String outstr;
+
+    foreach(cp; cv){
+        outstr.addCharP(cp);
+    }
+
+    return outstr.str;
 }
