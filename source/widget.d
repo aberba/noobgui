@@ -199,7 +199,7 @@ struct TextCtrl {
     }
 
     void computeClickedIndex(){
-        if(font is null || !utf8cv.length)
+        if(font is null || utf8cv.empty)
             return;
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
@@ -216,6 +216,8 @@ struct TextCtrl {
                 return;
             }
         }
+        cursorX = cast(int)accum;
+        cursorInd = utf8cv.length;
     }
 
     this(string id, string text){
