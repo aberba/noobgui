@@ -191,10 +191,16 @@ struct TextCtrl {
 
     void draw(){
         drawRect!SOLID(rect, Color(1.0f, 1.0f, 1.0f));
-        // TODO: get keyboard input to fill TextCtrl
         
         if(text.length > 0)
             renderText(text.slice.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
+        
+        import util: utflen;
+        if(root.focused == &window)
+            line(
+                Point(x + 8 + cast(int)text.str.utflen*cast(int)(h*0.3f), y+cast(int)(h*0.1f)),
+                Point(x + 8 + cast(int)text.str.utflen*cast(int)(h*0.3f), y+cast(int)(h*0.1f) + h - 8),
+                Color(0.5f, 0.5f, 0.5f));
     }
 }
 
@@ -329,7 +335,7 @@ void requestBSpace(ref Dvector!(Window*) wins){
             ubyte* mstr = cast(ubyte*)malloc((mstring.sizeof / ubyte.sizeof) * mstring.length);
             memcpy(mstr, mstring.ptr, (mstring.sizeof / ubyte.sizeof) * mstring.length);
             ubyte* dst;
-            auto size = utf8proc_map(mstr, mstring.sizeof, &dst, UTF8PROC_NULLTERM);
+            auto size = utf8proc_map(mstr, 0, &dst, UTF8PROC_NULLTERM);
             utf8proc_int32_t data;
             utf8proc_ssize_t n;
             utf8proc_uint8_t* char_ptr = mstr;

@@ -21,6 +21,14 @@ void _glVertex(int x, int y){
     glVertex2f(x * 2.0 / cast(float)CUR_WIN_WIDTH - 1.0, 1.0 - y * 2.0 / cast(float)CUR_WIN_HEIGHT);
 }
 
+void line(Point p1, Point p2, Color cl){
+    glBegin(GL_LINES);
+        glColor3f(cl.r, cl.g, cl.b);
+        _glVertex(p1.x, p1.y);
+        _glVertex(p2.x, p2.y);
+    glEnd();
+}
+
 void drawRect(Filling = HOLLOW)(Rect r, Color cl){
     static if(is(Filling == SOLID)){
         glBegin(GL_QUADS);
