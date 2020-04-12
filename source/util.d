@@ -43,5 +43,7 @@ size_t utflen(string mstring ){
         nchar++;
     }
 
+    free(mstr);
+    free(dst);
     return nchar;
 }
