@@ -224,6 +224,7 @@ struct TextCtrl {
     }
 
     @property void text(string str){
+        utf8cv.clear;
         getUTF8CharPVector(str, utf8cv);
     }
 
