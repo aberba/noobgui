@@ -195,6 +195,7 @@ struct TextCtrl {
         if(text.length > 0)
             renderText(text.slice.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
         
+        // draw a cursor
         import util: utflen;
         if(root.focused == &window)
             line(
