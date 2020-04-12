@@ -51,7 +51,7 @@ void renderText(const(char)* message, Color color, int x, int y, int size) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     TTF_Font *font = TTF_OpenFont("SourceSansPro-Semibold.ttf", size );
-    
+
     auto _color = SDL_Color(cast(ubyte)(color.r*255), cast(ubyte)(color.g*255), cast(ubyte)(color.b*255));
 
     SDL_Surface * sFont = TTF_RenderUTF8_Blended(font, message, _color);

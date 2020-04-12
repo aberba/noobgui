@@ -196,12 +196,20 @@ struct TextCtrl {
             renderText(text.slice.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
         
         // draw a cursor
+        // TODO: make font a struct member
+        import bindbc.sdl.ttf;
+        TTF_Font *font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(h*0.6f) );
+        int f_w, f_h; 
+        TTF_SizeUTF8(font, text.slice.ptr, &f_w, &f_h);
+        TTF_CloseFont(font);
+        
         import util: utflen;
         if(root.focused == &window)
             line(
-                Point(x + 8 + cast(int)text.str.utflen*cast(int)(h*0.3f), y+cast(int)(h*0.1f)),
-                Point(x + 8 + cast(int)text.str.utflen*cast(int)(h*0.3f), y+cast(int)(h*0.1f) + h - 8),
-                Color(0.5f, 0.5f, 0.5f));
+                Point(x + 8 + f_w, y + cast(int)(h*0.15f)),
+                Point(x + 8 + f_w, y + h - cast(int)(h*0.15f)),
+                Color(0.5f, 0.5f, 0.5f)
+            );
     }
 }
 
