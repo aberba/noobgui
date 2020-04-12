@@ -244,9 +244,11 @@ struct TextCtrl {
     }
 
     void delBack(){
-        auto delCharWidth = getUTF8CharWidth(utf8cv[cursorInd-1], font);
-        utf8cv.remove(--cursorInd);
-        cursorX -= delCharWidth;
+        if(cursorInd > 0){
+            auto delCharWidth = getUTF8CharWidth(utf8cv[cursorInd-1], font);
+            utf8cv.remove(--cursorInd);
+            cursorX -= delCharWidth;
+        }
     }
 
     void freeCV(){
