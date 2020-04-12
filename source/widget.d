@@ -333,10 +333,10 @@ void requestBSpace(ref Dvector!(Window*) wins){
         if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.text.length > 0){
             //window.as!TextCtrl.text.popBack();
             string mstring = window.as!TextCtrl.text.str;
-            ubyte* mstr = cast(ubyte*)malloc((mstring.sizeof / ubyte.sizeof) * mstring.length);
-            memcpy(mstr, mstring.ptr, (mstring.sizeof / ubyte.sizeof) * mstring.length);
+            ubyte* mstr = cast(ubyte*)malloc(mstring.length+1);
+            memcpy(mstr, mstring.ptr, mstring.length+1);
             ubyte* dst;
-            auto size = utf8proc_map(mstr, 0, &dst, UTF8PROC_NULLTERM);
+            auto size = utf8proc_map(mstr, mstring.length, &dst, UTF8PROC_NULLTERM);
             utf8proc_int32_t data;
             utf8proc_ssize_t n;
             utf8proc_uint8_t* char_ptr = mstr;
