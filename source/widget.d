@@ -125,10 +125,10 @@ struct Sizer {
 
 }
 
-alias ClickCallback = void delegate(Widget*) @nogc nothrow;
+alias ClickCallback = void delegate(Widget*, SDL_Event* event) @nogc nothrow;
 
 const char[] defCB = "
-    void defaultWidgetCB(Widget* wid){
+    void defaultWidgetCB(Widget* wid, SDL_Event* event){
         root.focused = &wid.window;
     }
         
@@ -191,18 +191,19 @@ struct TextCtrl {
 
         typeId = TYPE_TEXTCTRL;
 
-        void widgetCB(Widget* wid){
+        void widgetCB(Widget* wid, SDL_Event* event){
             root.focused = &wid.window;
-            wid.as!TextCtrl.computeClickedIndex();
+            wid.as!TextCtrl.computeClickedIndex(event);
         }
         onClicked = &widgetCB;
     }
 
-    void computeClickedIndex(){
-        if(font is null || utf8cv.empty)
+    void computeClickedIndex(SDL_Event* event){
+        if(font is null || utf8cv.empty || event is null)
             return;
-        int mouseX, mouseY;
-        SDL_GetMouseState(&mouseX, &mouseY);
+        //int mouseX, mouseY;
+        //SDL_GetMouseState(&mouseX, &mouseY);
+        int mouseX = event.button.x;
         auto localx = mouseX - x;
         if(localx < 0)
             return;
@@ -344,13 +345,13 @@ bool isClickable(Window* obj){
     return (obj.typeId & CLICKABLE)?true:false;
 }
 
-void doItForAllWindows(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
+void doItForAllWindows(Cb)(scope Cb cb, SDL_Event* event, ref Dvector!(Window*) wins){
     auto stack = wins.save;
     while(!stack.empty){
         immutable n = stack.length - 1;
         auto window = stack[n];
         
-        cb(window);
+        cb(window, event);
 
         stack.popBack;
         if(window.children.length){
@@ -362,7 +363,7 @@ void doItForAllWindows(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
 }
 
 void drawAllWindows(ref Dvector!(Window*) wins){
-    void cb(Window* window){
+    void cb(Window* window, SDL_Event* event){
         if(window.isDrawable){
             switch (window.typeId){
                 case TYPE_BUTTON:
@@ -380,20 +381,20 @@ void drawAllWindows(ref Dvector!(Window*) wins){
         }
     }
 
-    doItForAllWindows( &cb, wins);
+    doItForAllWindows( &cb, null, wins);
 }
 
-void processClickEvents(Cb)(scope Cb cb, ref Dvector!(Window*) wins){
-    void injection(Window* win){
+void processClickEvents(Cb)(scope Cb cb, SDL_Event* event, ref Dvector!(Window*) wins){
+    void injection(Window* win, SDL_Event* event){
         
         if(win.isClickable){
             
-            cb(win.as!Widget);
+            cb(win.as!Widget, event);
             
         }
     }
 
-    doItForAllWindows(&injection,  wins);
+    doItForAllWindows(&injection, event, wins);
 }
 
 void processTextInput(char* c, ref Dvector!(Window*) wins){
@@ -418,18 +419,18 @@ void processTextInput(char* c, ref Dvector!(Window*) wins){
 
 import utf8proc;
 
-void requestBSpace(ref Dvector!(Window*) wins){
+void requestBSpace(ref Dvector!(Window*) wins, SDL_Event* event){
     import core.stdc.stdlib;
     import core.stdc.string;
     import utf8proc;
 
-    void injection(Window* window){
+    void injection(Window* window, SDL_Event* event){
         if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.utf8cv.length > 0){
             window.as!TextCtrl.delBack();
         }
     }
     
-    doItForAllWindows(&injection, wins);
+    doItForAllWindows(&injection, event, wins);
 }
 
 Window* getWindowById(string id){

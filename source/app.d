@@ -17,7 +17,7 @@ import frame;
 
 alias String = dString!aumem;
 
-extern (C) int main(){
+/*extern (C) */int main(){
     initSDL();
     initSDLTTF();
     initGL();
@@ -30,11 +30,13 @@ extern (C) int main(){
 
     Widget w1 = Widget("w1");
 
-    void changeColor(Widget* wid) @nogc nothrow {
+    void changeColor(Widget* wid, SDL_Event* event) @nogc nothrow {
         wid.color = Color(
             rnd!float(0.0f, 1.0f),
             rnd!float(0.0f, 1.0f),
             rnd!float(0.0f, 1.0f));
+        
+        printf("Event type: %d \n", event.type);
     }
 
     w1.setClickHandler(&changeColor);
@@ -62,7 +64,7 @@ extern (C) int main(){
     root.add(button1);
     root.add(button2);
 
-    button1.setClickHandler(delegate void(Widget* widget){
+    button1.setClickHandler(delegate void(Widget* widget, SDL_Event* event){
         
         auto other = getWindowById("w2");
 
@@ -82,12 +84,12 @@ extern (C) int main(){
     
     static int dummy1 = 0; // has to be static
     static int dummy2 = 45;
-    wh2.setClickHandler(delegate void(Widget* wid){
+    wh2.setClickHandler(delegate void(Widget* wid, SDL_Event* event){
         printf("%s has clicked! %d \n", wid.id.ptr, dummy2);
         dummy1 = 13;
     });
 
-    void onClicked(Widget* wi) @nogc nothrow {
+    void onClicked(Widget* wi, SDL_Event* event) @nogc nothrow {
         printf("%s has clicked!\n", wi.id.ptr);
     }
 
@@ -120,7 +122,7 @@ void mainLoop(){
                             quit = true;
                             break;
                         case SDLK_BACKSPACE:
-                            requestBSpace(root.children);
+                            requestBSpace(root.children, &event);
                             break;
                         default:
                             break;
@@ -136,30 +138,34 @@ void mainLoop(){
                     }
                     break;
                 case SDL_MOUSEMOTION:
-                    void cb(Window* widget) @nogc nothrow {
+                    void cb(Window* widget, SDL_Event* _event) @nogc nothrow {
+                        _event = &event;
                         if(widget.typeId != TYPE_SIZER &&
                             isPointInRect(Point(event.motion.x, event.motion.y), widget.rect)){
                             widget.hover = true;
                         } else {
                             widget.hover = false;
                         }
+                        
                     }
-                    doItForAllWindows( &cb, root.children);
+                    doItForAllWindows( &cb, &event, root.children);
 
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    void clicked(Widget* wi) @nogc nothrow {
-                        int mouseX, mouseY;
-                        SDL_GetMouseState(&mouseX, &mouseY);
+                    void clicked(Widget* wi, SDL_Event* _event) @nogc nothrow {
+                        //int mouseX, mouseY;
+                        //SDL_GetMouseState(&mouseX, &mouseY);
+                        int mouseX = event.button.x;
+                        int mouseY = event.button.y;
                         
                         if(isPointInRect(Point(mouseX, mouseY), wi.rect)){
                             root.focused = &wi.window;
-                            wi.onClicked(wi);
+                            wi.onClicked(wi, _event);
                             printf("%s focused \n", root.focused.id.ptr);
                         }
                     }
 
-                    processClickEvents( &clicked, root.children);
+                    processClickEvents( &clicked, &event, root.children);
                     break;
                 case SDL_TEXTINPUT:
                     processTextInput(event.text.text.ptr, root.children);
