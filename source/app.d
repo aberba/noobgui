@@ -122,7 +122,10 @@ void mainLoop(){
                             quit = true;
                             break;
                         case SDLK_BACKSPACE:
-                            requestBSpace(root.children, &event);
+                            requestDelChar(root.children, &event);
+                            break;
+                        case SDLK_DELETE:
+                            requestDelChar(root.children, &event);
                             break;
                         default:
                             break;

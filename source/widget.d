@@ -252,6 +252,13 @@ struct TextCtrl {
         }
     }
 
+    void delFront(){
+        if(cursorInd < utf8cv.length){
+            auto delCharWidth = getUTF8CharWidth(utf8cv[cursorInd], font);
+            utf8cv.remove(cursorInd);
+        }
+    }
+
     void freeCV(){
         import core.stdc.stdlib;
         foreach (ref c; utf8cv)
@@ -400,16 +407,17 @@ void processTextInput(char* c, ref Dvector!(Window*) wins){
     stack.free;
 }
 
-import utf8proc;
-
-void requestBSpace(ref Dvector!(Window*) wins, SDL_Event* event){
+void requestDelChar(ref Dvector!(Window*) wins, SDL_Event* event){
     import core.stdc.stdlib;
     import core.stdc.string;
-    import utf8proc;
 
     void injection(Window* window, SDL_Event* event){
         if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.utf8cv.length > 0){
-            window.as!TextCtrl.delBack();
+            if(event.key.keysym.sym == SDLK_BACKSPACE)
+                window.as!TextCtrl.delBack();
+            else if(event.key.keysym.sym == SDLK_DELETE)
+                window.as!TextCtrl.delFront();
+
         }
     }
     
