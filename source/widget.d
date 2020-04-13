@@ -96,34 +96,23 @@ struct Sizer {
     }
 
     void layout(){
-        if(orientation == horizontal){
-            foreach (i, ref child; children){
+        foreach (i, ref child; children){
+            if(orientation == horizontal){
                 child.w = cast(int)((this.w - (children.length + 1) * padding) / children.length);
                 child.h = h;
                 child.pos = Point(cast(int)(this.x + i * (child.w + padding) + padding), this.y);
-                
-                if(child.typeId & CONTAINER ){
-                    child.as!Sizer.layout();
-                }
-                if(child.typeId == TYPE_TEXTCTRL){
-                    child.as!TextCtrl.layout();
-                }
-            }
-        }else{
-            foreach (i, ref child; children){
+            } else {
                 child.w = w;
                 child.h = cast(int)((this.h - (children.length + 1) * padding) / children.length);
                 child.pos = Point(this.x, cast(int)(this.y + i * (child.h + padding) + padding));
-                
-                if(child.typeId & CONTAINER ){
-                    child.as!Sizer.layout();
-                }
-                if(child.typeId == TYPE_TEXTCTRL){
-                    child.as!TextCtrl.layout();
-                }
+            }
+            if(child.typeId & CONTAINER ){
+                child.as!Sizer.layout();
+            }
+            if(child.typeId == TYPE_TEXTCTRL){
+                child.as!TextCtrl.layout();
             }
         }
-        
     }
 
     ~this(){
