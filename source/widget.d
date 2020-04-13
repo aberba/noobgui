@@ -48,6 +48,7 @@ struct Window {
 
     //void draw(){}
 
+
 }
 
 enum {
@@ -105,8 +106,7 @@ struct Sizer {
                     child.as!Sizer.layout();
                 }
                 if(child.typeId == TYPE_TEXTCTRL){
-                    TTF_CloseFont(child.as!TextCtrl.font);
-                    child.as!TextCtrl.font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(child.h*0.6f) );
+                    child.as!TextCtrl.layout();
                 }
             }
         }else{
@@ -119,8 +119,7 @@ struct Sizer {
                     child.as!Sizer.layout();
                 }
                 if(child.typeId == TYPE_TEXTCTRL){
-                    TTF_CloseFont(child.as!TextCtrl.font);
-                    child.as!TextCtrl.font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(child.h*0.6f) );
+                    child.as!TextCtrl.layout();
                 }
             }
         }
@@ -288,6 +287,11 @@ struct TextCtrl {
                 Point(cursorX, y + cast(int)(h*0.15f)),
                 Point(cursorX, y + h - cast(int)(h*0.15f)),
                 Color(0.5f, 0.5f, 0.5f));
+    }
+
+    void layout(){
+        TTF_CloseFont(font);
+        font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(h*0.6f) );
     }
 }
 
