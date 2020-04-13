@@ -15,10 +15,11 @@ alias String = dString!aumem;
 enum: int {
     TYPE_WINDOW = 1 << 0,
     TYPE_SIZER = 1 << 1,
-    TYPE_FRAME = 1 << 2,
-    TYPE_WIDGET = 1 << 3,
-    TYPE_BUTTON = 1 << 4,
-    TYPE_TEXTCTRL = 1 << 5
+    TYPE_SPACER = 1 << 2,
+    TYPE_FRAME = 1 << 3,
+    TYPE_WIDGET = 1 << 4,
+    TYPE_BUTTON = 1 << 5,
+    TYPE_TEXTCTRL = 1 << 6
 }
 
 enum DRAWABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
@@ -47,8 +48,23 @@ struct Window {
     }
 
     //void draw(){}
+}
 
+struct Spacer {
+    Window window;
 
+    alias window this;
+
+    @nogc nothrow:
+    
+    this(string id){
+
+        this.id = id;
+
+        derived = &this;
+
+        typeId = TYPE_SPACER;
+    }
 }
 
 enum {

@@ -13,7 +13,7 @@
 	"description": "An experimental gui lib for Dlang with betterC.",
 	"license": "boost",
     "name": "noobgui",
-    "comment_dflags": ["-betterC"],
+    "dflags": ["-betterC"],
     "versions": [
         "BindSDL_TTF",
         "GL_31", "GL_AllowDeprecated"

@@ -17,7 +17,7 @@ import frame;
 
 alias String = dString!aumem;
 
-/*extern (C) */int main(){
+extern (C) int main(){
     initSDL();
     initSDLTTF();
     initGL();
@@ -36,7 +36,9 @@ alias String = dString!aumem;
             rnd!float(0.0f, 1.0f),
             rnd!float(0.0f, 1.0f));
         
-        printf("Event type: %d \n", event.type);
+        auto str = getWindowById("text1").as!TextCtrl.text;
+        
+        printf("string of text1 is: %s \n", str.ptr);
     }
 
     w1.setClickHandler(&changeColor);
@@ -53,10 +55,10 @@ alias String = dString!aumem;
     
     text1.text = "Your text goes here!";
 
-    //auto text2 = TextCtrl("text2", "Can you do utf-8? Ğğüşşiiççıı");
+    auto text2 = TextCtrl("text2", "Can you do utf-8? Ğğüşşiiççıı");
 
     root.add(text1);
-    //root.add(text2);
+    root.add(text2);
     root.add(w1);
     root.add(w2);
     root.add(h1); // another Sizer
@@ -74,11 +76,11 @@ alias String = dString!aumem;
             rnd!float(0.0f, 1.0f));
     });
     
-    auto wh1 = Widget("wh1");
+    auto spacer1 = Spacer("spacer1");
     auto wh2 = Widget("wh2");
     auto wh3 = Widget("wh3");
 
-    h1.add(wh1);
+    h1.add(spacer1);
     h1.add(wh2);
     h1.add(wh3);
     
