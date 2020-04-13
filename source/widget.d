@@ -104,6 +104,10 @@ struct Sizer {
                 if(child.typeId & CONTAINER ){
                     child.as!Sizer.layout();
                 }
+                if(child.typeId == TYPE_TEXTCTRL){
+                    TTF_CloseFont(child.as!TextCtrl.font);
+                    child.as!TextCtrl.font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(child.h*0.6f) );
+                }
             }
         }else{
             foreach (i, ref child; children){
@@ -113,6 +117,10 @@ struct Sizer {
                 
                 if(child.typeId & CONTAINER ){
                     child.as!Sizer.layout();
+                }
+                if(child.typeId == TYPE_TEXTCTRL){
+                    TTF_CloseFont(child.as!TextCtrl.font);
+                    child.as!TextCtrl.font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(child.h*0.6f) );
                 }
             }
         }
@@ -190,6 +198,8 @@ struct TextCtrl {
         derived = &this;
 
         typeId = TYPE_TEXTCTRL;
+
+        font = TTF_OpenFont("SourceSansPro-Semibold.ttf", 22 );
 
         void widgetCB(Widget* wid, SDL_Event* event){
             root.focused = &wid.window;
@@ -273,30 +283,11 @@ struct TextCtrl {
             renderText(text.ptr, Color(0.0f,0.0f,0.0f), x + leftTextOffset, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
         
         // draw a cursor
-        // TODO: make font a struct member
-        
-        font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(h*0.6f) );
-        int f_w, f_h; 
-        TTF_SizeUTF8(font, text.ptr, &f_w, &f_h);
-
-        if(utf8cv.length){
-            //auto lastWidth = getUTF8CharWidth(utf8cv[$-1], font);
-            //printf("width: %d \n", lastWidth);
-        }
-
-        TTF_CloseFont(font);
-        
         if(root.focused == &window)
             line(
                 Point(cursorX, y + cast(int)(h*0.15f)),
                 Point(cursorX, y + h - cast(int)(h*0.15f)),
                 Color(0.5f, 0.5f, 0.5f));
-            /*line(
-                Point(x + leftTextOffset + f_w, y + cast(int)(h*0.15f)),
-                Point(x + leftTextOffset + f_w, y + h - cast(int)(h*0.15f)),
-                Color(0.5f, 0.5f, 0.5f)
-            );
-            */
     }
 }
 
