@@ -199,18 +199,17 @@ struct TextCtrl {
     void computeClickedIndex(SDL_Event* event){
         if(font is null || utf8cv.empty || event is null)
             return;
-        //int mouseX, mouseY;
-        //SDL_GetMouseState(&mouseX, &mouseY);
         int mouseX = event.button.x;
         auto localx = mouseX - x;
-        if(localx < 0)
-            return;
+        /*if(localx < 0)
+            return;*/
         size_t accum = leftTextOffset;
         foreach (i, ref c; utf8cv){
-            accum += getUTF8CharWidth(c, font);
+            const cw = getUTF8CharWidth(c, font);
+            accum += cw;
             if(accum > localx){
-                cursorInd = i + 1;
-                cursorX = cast(int)accum;
+                cursorInd = i;
+                cursorX = cast(int)accum - cw;
                 printf("clicked index %d\n", cursorInd);
                 return;
             }

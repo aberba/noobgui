@@ -135,6 +135,7 @@ void mainLoop(){
                         root.w = CUR_WIN_WIDTH;
                         root.h = CUR_WIN_HEIGHT;
                         root.layout;
+                        root.focused = null;
                     }
                     break;
                 case SDL_MOUSEMOTION:
