@@ -56,6 +56,7 @@ extern (C) int main(){
     text1.text = "Your text goes here!";
 
     auto text2 = TextCtrl("text2", "Can you do utf-8? Ğğüşşiiççıı");
+    text2.margin = 10;
 
     root.add(text1);
     root.add(text2);
@@ -147,7 +148,7 @@ void mainLoop(){
                     void cb(Window* widget, SDL_Event* _event) @nogc nothrow {
                         _event = &event;
                         if(widget.typeId != TYPE_SIZER &&
-                            isPointInRect(Point(event.motion.x, event.motion.y), widget.rect)){
+                            isPointInRect(Point(event.motion.x, event.motion.y), widget.lrect)){
                             widget.hover = true;
                         } else {
                             widget.hover = false;
@@ -164,7 +165,7 @@ void mainLoop(){
                         int mouseX = event.button.x;
                         int mouseY = event.button.y;
                         
-                        if(isPointInRect(Point(mouseX, mouseY), wi.rect)){
+                        if(isPointInRect(Point(mouseX, mouseY), wi.lrect)){
                             root.focused = &wi.window;
                             wi.onClicked(wi, _event);
                             printf("%s focused \n", root.focused.id.ptr);

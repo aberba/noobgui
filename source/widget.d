@@ -26,10 +26,34 @@ enum DRAWABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
 enum CONTAINER = TYPE_SIZER | TYPE_FRAME;
 enum CLICKABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
 
+
+template LocalDims(){
+    @property int lx(){
+        return x + margin;
+    }
+
+    @property int ly(){
+        return y + margin;
+    }
+
+    @property int lw(){
+        return w - 2*margin;
+    }
+
+    @property int lh(){
+        return h - 2*margin;
+    }
+
+    @property Rect lrect(){
+        return Rect(lx, ly, lw, lh);
+    }
+}
+
 struct Window {
     string id;
 
     Rect rect;
+    int margin = 5;
 
     Dvector!(Window*) children;
 
@@ -43,11 +67,11 @@ struct Window {
 
     @nogc nothrow:
 
+    mixin LocalDims;
+
     auto as(T)(){
         return cast(T*)derived;
     }
-
-    //void draw(){}
 }
 
 struct Spacer {
@@ -113,6 +137,7 @@ struct Sizer {
 
     void layout(){
         foreach (i, ref child; children){
+            immutable cm = child.margin;
             if(orientation == horizontal){
                 child.w = cast(int)((this.w - (children.length + 1) * padding) / children.length);
                 child.h = h;
@@ -173,9 +198,9 @@ struct Widget {
 
     void draw(){
         if(hover)
-            drawRect!SOLID(rect, color);
+            drawRect!SOLID(Rect(lx, ly, lw, lh), color);
         else
-            drawRect(rect, color);
+            drawRect(Rect(lx, ly, lw, lh), color);
     }
 }
 
@@ -216,9 +241,8 @@ struct TextCtrl {
         if(font is null || utf8cv.empty || event is null)
             return;
         int mouseX = event.button.x;
-        auto localx = mouseX - x;
-        /*if(localx < 0)
-            return;*/
+        auto localx = mouseX - lx;
+        
         size_t accum = leftTextOffset;
         foreach (i, ref c; utf8cv){
             const cw = getUTF8CharWidth(c, font);
@@ -287,22 +311,22 @@ struct TextCtrl {
     }
 
     void draw(){
-        drawRect!SOLID(rect, Color(1.0f, 1.0f, 1.0f));
+        drawRect!SOLID(lrect, Color(1.0f, 1.0f, 1.0f));
         
         if(text.length > 0)
-            renderText(text.ptr, Color(0.0f,0.0f,0.0f), x + leftTextOffset, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
+            renderText(text.ptr, Color(0.0f,0.0f,0.0f), lx + leftTextOffset, ly+cast(int)(lh*0.1f), cast(int)(lh*0.6f));
         
         // draw a cursor
         if(root.focused == &window)
             line(
-                Point(cursorX, y + cast(int)(h*0.15f)),
-                Point(cursorX, y + h - cast(int)(h*0.15f)),
+                Point(cursorX + margin, ly + cast(int)(lh*0.15f)),
+                Point(cursorX + margin, ly + lh - cast(int)(lh*0.15f)),
                 Color(0.5f, 0.5f, 0.5f));
     }
 
     void layout(){
         TTF_CloseFont(font);
-        font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(h*0.6f) );
+        font = TTF_OpenFont("SourceSansPro-Semibold.ttf", cast(int)(lh*0.6f) );
     }
 }
 
@@ -333,9 +357,9 @@ struct Button {
 
     void draw(){
         if(hover)
-            drawRect!SOLID(rect, color);
+            drawRect!SOLID(Rect(lx, ly, lw, lh), color);
         else
-            drawRect(rect, color);
+            drawRect(Rect(lx, ly, lw, lh), color);
         
         renderText(label.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
     }
