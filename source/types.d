@@ -1,5 +1,7 @@
 module types;
 
+import std.stdint;
+
 struct Point {
     int x;
     int y;
@@ -30,3 +32,19 @@ struct _Color(T){
 }
 
 alias Color = _Color!float;
+
+static struct Clock {
+    import bindbc.sdl;
+
+    static uint32_t lastTickTime = 0;
+    static uint32_t delta = 0;
+
+    @nogc nothrow:
+    
+    static void tick()
+    {
+        uint32_t tickTime = SDL_GetTicks();
+        delta = tickTime - lastTickTime;
+        lastTickTime = tickTime;
+    }
+}

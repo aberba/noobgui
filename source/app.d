@@ -56,11 +56,11 @@ extern (C) int main(){
     text1.text = "Your text goes here!";
 
     auto text2 = TextCtrl("text2", "Can you do utf-8? Ğğüşşiiççıı");
-    text2.margin = 10;
+    text2.marginLeft = 10;
 
     root.add(text1);
     root.add(text2);
-    root.add(w1);
+    root.add(w1); w1.marginRight = 30;
     root.add(w2);
     root.add(h1); // another Sizer
     root.add(w3);
@@ -78,7 +78,7 @@ extern (C) int main(){
     });
     
     auto spacer1 = Spacer("spacer1");
-    auto wh2 = Widget("wh2");
+    auto wh2 = Widget("wh2"); wh2.marginLeft = 10;
     auto wh3 = Widget("wh3");
 
     h1.add(spacer1);
@@ -129,6 +129,18 @@ void mainLoop(){
                             break;
                         case SDLK_DELETE:
                             requestDelChar(root.children, &event);
+                            break;
+                        case SDLK_LEFT:
+                            requestKeyArrow(root.children, &event);
+                            break;
+                        case SDLK_RIGHT:
+                            requestKeyArrow(root.children, &event);
+                            break;
+                        case SDLK_UP:
+                            requestKeyArrow(root.children, &event);
+                            break;
+                        case SDLK_DOWN:
+                            requestKeyArrow(root.children, &event);
                             break;
                         default:
                             break;
@@ -189,6 +201,8 @@ void mainLoop(){
         drawAllWindows(root.children);
 
         SDL_GL_SwapWindow(sdl_window);
+
+        Clock.tick();
     }
 
 

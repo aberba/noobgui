@@ -29,19 +29,19 @@ enum CLICKABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
 
 template LocalDims(){
     @property int lx(){
-        return x + margin;
+        return x + marginLeft;
     }
 
     @property int ly(){
-        return y + margin;
+        return y + marginTop;
     }
 
     @property int lw(){
-        return w - 2*margin;
+        return w - (marginLeft + marginRight);
     }
 
     @property int lh(){
-        return h - 2*margin;
+        return h - (marginTop + marginBottom);
     }
 
     @property Rect lrect(){
@@ -53,7 +53,11 @@ struct Window {
     string id;
 
     Rect rect;
-    int margin = 5;
+
+    int marginLeft = 5;
+    int marginTop = 5;
+    int marginRight = 5;
+    int marginBottom = 5;
 
     Dvector!(Window*) children;
 
@@ -137,7 +141,6 @@ struct Sizer {
 
     void layout(){
         foreach (i, ref child; children){
-            immutable cm = child.margin;
             if(orientation == horizontal){
                 child.w = cast(int)((this.w - (children.length + 1) * padding) / children.length);
                 child.h = h;
@@ -220,6 +223,9 @@ struct TextCtrl {
     size_t cursorInd;
     int cursorX = 0;
 
+    uint cursorBlinker;
+    bool cursorRelay = true;
+
     @nogc nothrow:
     this(string id){
         this.id = id;
@@ -299,6 +305,22 @@ struct TextCtrl {
         }
     }
 
+    void moveCursorLeft(){
+        if(cursorInd){
+            auto nextCharWidth = getUTF8CharWidth(utf8cv[cursorInd-1], font);
+            --cursorInd;
+            cursorX -= nextCharWidth;
+        }
+    }
+
+    void moveCursorRight(){
+        if(cursorInd < utf8cv.length){
+            auto nextCharWidth = getUTF8CharWidth(utf8cv[cursorInd], font);
+            ++cursorInd;
+            cursorX += nextCharWidth;
+        }
+    }
+
     void freeCV(){
         import core.stdc.stdlib;
         foreach (ref c; utf8cv)
@@ -317,11 +339,19 @@ struct TextCtrl {
             renderText(text.ptr, Color(0.0f,0.0f,0.0f), lx + leftTextOffset, ly+cast(int)(lh*0.1f), cast(int)(lh*0.6f));
         
         // draw a cursor
-        if(root.focused == &window)
-            line(
-                Point(cursorX + margin, ly + cast(int)(lh*0.15f)),
-                Point(cursorX + margin, ly + lh - cast(int)(lh*0.15f)),
-                Color(0.5f, 0.5f, 0.5f));
+        cursorBlinker += Clock.delta;
+        if(root.focused == &window){
+            if(cursorBlinker > 500){
+                cursorBlinker = 0;
+                cursorRelay = !cursorRelay;
+            }
+            if(cursorRelay)
+                line(
+                    Point(cursorX + marginLeft, ly + cast(int)(lh*0.15f)),
+                    Point(cursorX + marginLeft, ly + lh - cast(int)(lh*0.15f)),
+                    Color(0.5f, 0.5f, 0.5f)
+                );
+        }
     }
 
     void layout(){
@@ -448,15 +478,26 @@ void processTextInput(char* c, ref Dvector!(Window*) wins){
 }
 
 void requestDelChar(ref Dvector!(Window*) wins, SDL_Event* event){
-    import core.stdc.stdlib;
-    import core.stdc.string;
-
     void injection(Window* window, SDL_Event* event){
         if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.utf8cv.length > 0){
             if(event.key.keysym.sym == SDLK_BACKSPACE)
                 window.as!TextCtrl.delBack();
             else if(event.key.keysym.sym == SDLK_DELETE)
                 window.as!TextCtrl.delFront();
+
+        }
+    }
+    
+    doItForAllWindows(&injection, event, wins);
+}
+
+void requestKeyArrow(ref Dvector!(Window*) wins, SDL_Event* event){
+    void injection(Window* window, SDL_Event* event){
+        if(window.typeId == TYPE_TEXTCTRL && window == root.focused && window.as!TextCtrl.utf8cv.length > 0){
+            if(event.key.keysym.sym == SDLK_LEFT)
+                window.as!TextCtrl.moveCursorLeft();
+            else if(event.key.keysym.sym == SDLK_RIGHT)
+                window.as!TextCtrl.moveCursorRight();
 
         }
     }
