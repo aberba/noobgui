@@ -212,8 +212,7 @@ struct FlexSizer {
             exit(1);
         }
     }
-
-    // TODO: fix double padding between children
+    
     void layout(){
         int accum = 0;
         foreach (_i, ref child; children){
