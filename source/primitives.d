@@ -18,7 +18,11 @@ void resize(int w, int h){
 
 
 void _glVertex(int x, int y){
-    glVertex2f(x * 2.0 / cast(float)CUR_WIN_WIDTH - 1.0, 1.0 - y * 2.0 / cast(float)CUR_WIN_HEIGHT);
+    glVertex2f(x * 2.0f / cast(float)CUR_WIN_WIDTH - 1.0f, 1.0f - y * 2.0f / cast(float)CUR_WIN_HEIGHT);
+}
+
+void _glVertex2f(float x, float y){
+    glVertex2f(x * 2.0f / cast(float)CUR_WIN_WIDTH - 1.0f, 1.0f - y * 2.0f / cast(float)CUR_WIN_HEIGHT);
 }
 
 void line(Point p1, Point p2, Color cl){
@@ -73,4 +77,123 @@ void renderText(const(char)* message, Color color, int x, int y, int size) {
 
     TTF_CloseFont(font);
     SDL_FreeSurface(sFont);
+}
+
+
+// https://stackoverflow.com/questions/5369507/opengl-es-1-0-2d-rounded-rectangle
+import core.stdc.math;
+import std.math: PI;
+
+enum GLW_SMALL_ROUNDED_CORNER_SLICES = 25;  // How many vertexes you want of each corner
+
+
+struct glwVec2{float x, y;}
+
+static glwVec2[GLW_SMALL_ROUNDED_CORNER_SLICES] glwRoundedCorners; // This array keep the generated vertexes of one corner
+
+static void createRoundedCorners(glwVec2 *arr, int num) {
+  // Generate the corner vertexes
+  float slice = PI / 2.0f / num;
+  int i;
+  float a = 0;
+  for (i = 0; i < num; a += slice, ++i) {
+    arr[i].x = cosf(a);
+    arr[i].y = sinf(a);
+  }
+}
+
+void glwDrawRoundedRectGradientFill(float x, float y, float width, float height,
+    float radius, Color topColor, Color bottomColor) {
+  
+  createRoundedCorners(glwRoundedCorners.ptr, GLW_SMALL_ROUNDED_CORNER_SLICES);
+  
+  float left = x;
+  float top = y;
+  float bottom = y + height - 1;
+  float right = x + width - 1;
+  int i;
+  glDisable(GL_TEXTURE_2D);
+  glBegin(GL_QUAD_STRIP);
+    // Draw left rounded side.
+    for (i = 0; i < GLW_SMALL_ROUNDED_CORNER_SLICES; ++i) {
+      glColor3d(bottomColor.r, bottomColor.g, bottomColor.b);
+      _glVertex2f(left + radius - radius * glwRoundedCorners[i].x,
+        bottom - radius + radius * glwRoundedCorners[i].y);
+      glColor3d(topColor.r, topColor.g, topColor.b);
+      _glVertex2f(left + radius - radius * glwRoundedCorners[i].x,
+        top + radius - radius * glwRoundedCorners[i].y);
+    }
+    // Draw right rounded side.
+    for (i = GLW_SMALL_ROUNDED_CORNER_SLICES - 1; i >= 0; --i) {
+      glColor3d(bottomColor.r, bottomColor.g, bottomColor.b);
+      _glVertex2f(right - radius + radius * glwRoundedCorners[i].x,
+        bottom - radius + radius * glwRoundedCorners[i].y);
+      glColor3d(topColor.r, topColor.g, topColor.b);
+      _glVertex2f(right - radius + radius * glwRoundedCorners[i].x,
+        top + radius - radius * glwRoundedCorners[i].y);
+    }
+  glEnd();
+}
+
+static void glwDrawRightTopVertexs(float left, float top, float right,
+    float bottom, float radius) {
+  int i;
+  for (i = GLW_SMALL_ROUNDED_CORNER_SLICES - 1; i >= 0; --i) {
+    _glVertex2f(right - radius + radius * glwRoundedCorners[i].x,
+      top + radius - radius * glwRoundedCorners[i].y);
+  }
+}
+
+static void glwDrawRightBottomVertexs(float left, float top, float right,
+    float bottom, float radius) {
+  int i;
+  for (i = 0; i < GLW_SMALL_ROUNDED_CORNER_SLICES; ++i) {
+    _glVertex2f(right - radius + radius * glwRoundedCorners[i].x,
+      bottom - radius + radius * glwRoundedCorners[i].y);
+  }
+}
+
+static void glwDrawLeftBottomVertexs(float left, float top, float right,
+    float bottom, float radius) {
+  int i;
+  for (i = GLW_SMALL_ROUNDED_CORNER_SLICES - 1; i >= 0; --i) {
+    _glVertex2f(left + radius - radius * glwRoundedCorners[i].x,
+      bottom - radius + radius * glwRoundedCorners[i].y);
+  }
+}
+
+static void glwDrawLeftTopVertexs(float left, float top, float right,
+    float bottom, float radius) {
+  int i;
+  for (i = 0; i < GLW_SMALL_ROUNDED_CORNER_SLICES; ++i) {
+    _glVertex2f(left + radius - radius * glwRoundedCorners[i].x,
+      top + radius - radius * glwRoundedCorners[i].y);
+  }
+}
+
+void glwDrawRoundedRectBorder(int x, int y, int width, int height,
+    int radius, Color color) {
+  float left = cast(float)x;
+  float top = cast(float)y;
+  float bottom = cast(float)y + height - 1;
+  float right = x + cast(float)width - 1;
+  glDisable(GL_TEXTURE_2D);
+  glColor3d(color.r, color.g, color.b);
+  glBegin(GL_LINE_LOOP);
+    _glVertex2f(left, top + radius);
+    glwDrawLeftTopVertexs(left, top, right, bottom, radius);
+    _glVertex2f(left + radius, top);
+
+    _glVertex2f(right - radius, top);
+    glwDrawRightTopVertexs(left, top, right, bottom, radius);
+    _glVertex2f(right, top + radius);
+
+    _glVertex2f(right, bottom - radius);
+    glwDrawRightBottomVertexs(left, top, right, bottom, radius);
+    _glVertex2f(right - radius, bottom);
+
+    _glVertex2f(left + radius, bottom);
+    glwDrawLeftBottomVertexs(left, top, right, bottom, radius);
+    _glVertex2f(left, bottom - radius);
+  glEnd();
 }

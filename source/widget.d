@@ -72,6 +72,13 @@ struct Window {
 
     @nogc nothrow:
 
+    @property void marginAll(int v){
+        marginLeft = v;
+        marginTop = v;
+        marginRight = v;
+        marginBottom = v;
+    }
+
     mixin LocalDims;
 
     auto as(T)(){
@@ -478,12 +485,16 @@ struct Button {
     }
 
     void draw(){
-        if(hover)
-            drawRect!SOLID(Rect(lx, ly, lw, lh), color);
-        else
-            drawRect(Rect(lx, ly, lw, lh), color);
+        if(hover){
+            glwDrawRoundedRectGradientFill(cast(float)lx, cast(float)ly, cast(float)lw, cast(float)lh, 8, Color(0.9f, 0.9f, 1.0f), Color(0.7f, 0.7f, 1.0f));
+            glwDrawRoundedRectBorder(lx, ly, lw, lh, 8, Color(0.0f, 0.0f, 0.0f));
+        }else{
+            glwDrawRoundedRectGradientFill(cast(float)lx, cast(float)ly, cast(float)lw, cast(float)lh, 8, Color(0.8f, 0.8f, 1.0f), Color(0.6f, 0.6f, 1.0f));
+            glwDrawRoundedRectBorder(lx, ly, lw, lh, 8, Color(0.0f, 0.0f, 0.0f));
+        }    
+            //drawRect(Rect(lx, ly, lw, lh), color);
         
-        renderText(label.ptr, Color(0.0f,0.0f,0.0f), x+8, y+cast(int)(h*0.1f), cast(int)(h*0.6f));
+        renderText(label.ptr, Color(0.0f,0.0f,0.0f), lx+8, ly+cast(int)(lh*0.1f), cast(int)(lh*0.6f));
     }
 }
 
