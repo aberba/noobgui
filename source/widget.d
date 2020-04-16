@@ -15,15 +15,16 @@ alias String = dString!aumem;
 enum: int {
     TYPE_WINDOW = 1 << 0,
     TYPE_SIZER = 1 << 1,
-    TYPE_SPACER = 1 << 2,
-    TYPE_FRAME = 1 << 3,
-    TYPE_WIDGET = 1 << 4,
-    TYPE_BUTTON = 1 << 5,
-    TYPE_TEXTCTRL = 1 << 6
+    TYPE_FLEXSIZER = 1 << 2,
+    TYPE_SPACER = 1 << 3,
+    TYPE_FRAME = 1 << 4,
+    TYPE_WIDGET = 1 << 5,
+    TYPE_BUTTON = 1 << 6,
+    TYPE_TEXTCTRL = 1 << 7
 }
 
 enum DRAWABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
-enum CONTAINER = TYPE_SIZER | TYPE_FRAME;
+enum CONTAINER = TYPE_SIZER | TYPE_FLEXSIZER | TYPE_FRAME;
 enum CLICKABLE = TYPE_WIDGET | TYPE_BUTTON | TYPE_TEXTCTRL;
 
 
@@ -140,27 +141,104 @@ struct Sizer {
     }
 
     void layout(){
-        foreach (i, ref child; children){
+        foreach (_i, ref child; children){
+            immutable i = cast(int)_i;
             if(orientation == horizontal){
                 child.w = cast(int)((this.w - (children.length + 1) * padding) / children.length);
                 child.h = h;
-                child.pos = Point(cast(int)(this.x + i * (child.w + padding) + padding), this.y);
+                child.pos = Point(this.x + i * (child.w + padding) + padding, this.y);
             } else {
                 child.w = w;
                 child.h = cast(int)((this.h - (children.length + 1) * padding) / children.length);
-                child.pos = Point(this.x, cast(int)(this.y + i * (child.h + padding) + padding));
+                child.pos = Point(this.x, this.y + i * (child.h + padding) + padding);
             }
-            if(child.typeId & CONTAINER ){
-                child.as!Sizer.layout();
-            }
-            if(child.typeId == TYPE_TEXTCTRL){
-                child.as!TextCtrl.layout();
+            switch (child.typeId){
+                case TYPE_SIZER:
+                    child.as!Sizer.layout();
+                    break;
+                case TYPE_FLEXSIZER:
+                    child.as!FlexSizer.layout();
+                    break;
+                case TYPE_TEXTCTRL:
+                    child.as!TextCtrl.layout();
+                    break;
+                default: break;
             }
         }
     }
 
     ~this(){
         children.clear;
+    }
+
+}
+
+struct FlexSizer {
+    Window window;
+
+    alias window this;
+
+    int padding = 5;
+    
+    int orientation = vertical;
+
+    private float[] spaceRates;
+
+    @nogc nothrow:
+
+    this(size_t N)(string id, int or, float[N] spaceRates){
+        orientation = or;
+
+        this.spaceRates = spaceRates[];
+
+        this.id = id;
+
+        derived = &this;
+
+        typeId = TYPE_FLEXSIZER;
+    }
+
+    ~this(){
+        children.clear;
+    }
+
+    void add(ref Window child){
+        //if(children.length < spaceRates.length){
+            children.pushBack(&child);
+            layout();
+        //}
+    }
+
+    void layout(){
+        int accum = 0;
+        foreach (_i, ref child; children){
+            immutable i = cast(int)_i;
+            immutable sr = spaceRates[i];
+            if(orientation == horizontal){
+                child.w = cast(int)(this.w * sr  - padding);
+                accum = child.w + padding;
+                if(i == children.length - 1) child.w += padding;
+                else if(i == 0) accum = 0;
+                child.h = h;
+                child.pos = Point(cast(int)(this.x + accum ), this.y);
+            } else {
+                child.w = w;
+                child.h = cast(int)(this.h * sr );
+                child.pos = Point(this.x, cast(int)(this.y + child.h * sr));
+            }
+            switch (child.typeId){
+                case TYPE_SIZER:
+                    child.as!Sizer.layout();
+                    break;
+                case TYPE_FLEXSIZER:
+                    child.as!FlexSizer.layout();
+                    break;
+                case TYPE_TEXTCTRL:
+                    child.as!TextCtrl.layout();
+                    break;
+                default: break;
+            }
+        }
     }
 
 }
@@ -239,6 +317,7 @@ struct TextCtrl {
         void widgetCB(Widget* wid, SDL_Event* event){
             root.focused = &wid.window;
             wid.as!TextCtrl.computeClickedIndex(event);
+            wid.as!TextCtrl.cursorRelay = true;
         }
         onClicked = &widgetCB;
     }
@@ -336,11 +415,12 @@ struct TextCtrl {
         drawRect!SOLID(lrect, Color(1.0f, 1.0f, 1.0f));
         
         if(text.length > 0)
-            renderText(text.ptr, Color(0.0f,0.0f,0.0f), lx + leftTextOffset, ly+cast(int)(lh*0.1f), cast(int)(lh*0.6f));
+            renderText(text.ptr, Color(0.0f,0.0f,0.0f), lx + leftTextOffset, ly+cast(int)(lh*0.15f), cast(int)(lh*0.6f));
         
         // draw a cursor
-        cursorBlinker += Clock.delta;
+        
         if(root.focused == &window){
+            cursorBlinker += Clock.delta;
             if(cursorBlinker > 500){
                 cursorBlinker = 0;
                 cursorRelay = !cursorRelay;

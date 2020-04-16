@@ -98,6 +98,16 @@ extern (C) int main(){
 
     w3.setClickHandler(&onClicked);
 
+    FlexSizer fs1 = FlexSizer("fz1", horizontal, [0.25, 0.25, 0.5]);
+    root.add(fs1);
+    
+    auto wf1 = Widget("wf1");
+    auto wf2 = Widget("wf2");
+    auto wf3 = Widget("wf3");
+    fs1.add(wf1);
+    fs1.add(wf2);
+    fs1.add(wf3);
+
     mainLoop;
 
     SDL_GL_DeleteContext(glcontext);
