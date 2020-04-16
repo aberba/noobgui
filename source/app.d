@@ -54,6 +54,7 @@ extern (C) int main(){
     auto text1 = TextCtrl("text1");
     
     text1.text = "Your text goes here!";
+    text1.marginLeft = 10;
 
     auto text2 = TextCtrl("text2", "Can you do utf-8? Ğğüşşiiççıı");
     text2.marginLeft = 10;

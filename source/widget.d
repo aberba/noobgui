@@ -55,10 +55,10 @@ struct Window {
 
     Rect rect;
 
-    int marginLeft = 5;
-    int marginTop = 5;
-    int marginRight = 5;
-    int marginBottom = 5;
+    int marginLeft;
+    int marginTop;
+    int marginRight;
+    int marginBottom;
 
     Dvector!(Window*) children;
 
@@ -228,8 +228,11 @@ struct FlexSizer {
                 child.pos = Point(cast(int)(this.x + accum ), this.y);
             } else {
                 child.w = w;
-                child.h = cast(int)(this.h * sr );
-                child.pos = Point(this.x, cast(int)(this.y + child.h * sr));
+                child.h = cast(int)(this.h * sr - padding);
+                accum = child.h + padding;
+                if(i == children.length - 1) child.h += padding;
+                else if(i == 0) accum = 0;
+                child.pos = Point(this.x, cast(int)(this.y + accum));
             }
             switch (child.typeId){
                 case TYPE_SIZER:
@@ -325,6 +328,11 @@ struct TextCtrl {
             wid.as!TextCtrl.cursorRelay = true;
         }
         onClicked = &widgetCB;
+
+        marginLeft = 5;
+        marginTop = 5;
+        marginRight = 5;
+        marginBottom = 5;
     }
 
     void computeClickedIndex(SDL_Event* event){
