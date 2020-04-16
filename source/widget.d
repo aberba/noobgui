@@ -203,12 +203,17 @@ struct FlexSizer {
     }
 
     void add(ref Window child){
-        //if(children.length < spaceRates.length){
+        if(children.length < spaceRates.length){
             children.pushBack(&child);
             layout();
-        //}
+        }else{
+            printf("Maximum children count reached! ".ptr);
+            import core.stdc.stdlib;
+            exit(1);
+        }
     }
 
+    // TODO: fix double padding between children
     void layout(){
         int accum = 0;
         foreach (_i, ref child; children){
