@@ -450,7 +450,9 @@ struct TextCtrl {
                     Point(cursorX + marginLeft, ly + lh - cast(int)(lh*0.15f)),
                     Color(0.5f, 0.5f, 0.5f)
                 );
-        }
+            drawRect!HOLLOW(Rect(lx, ly, lw, lh), Color(0.0f, 0.0f, 0.0f));
+        } else
+            drawRect!HOLLOW(Rect(lx, ly, lw, lh), Color(0.5f, 0.5f, 0.5f));
     }
 
     void layout(){
