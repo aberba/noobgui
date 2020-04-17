@@ -7,7 +7,7 @@ import stringnogc;
 
 import boilerplate;
 import util;
-import primitives;
+import drawobjects;
 import globals;
 import types;
 import widget;

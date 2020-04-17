@@ -7,7 +7,7 @@ import dvector;
 
 import globals;
 import types;
-import primitives;
+import drawobjects;
 import stringnogc;
 
 alias String = dString!aumem;
@@ -445,7 +445,7 @@ struct TextCtrl {
                 cursorRelay = !cursorRelay;
             }
             if(cursorRelay)
-                line(
+                drawLine(
                     Point(cursorX + marginLeft, ly + cast(int)(lh*0.15f)),
                     Point(cursorX + marginLeft, ly + lh - cast(int)(lh*0.15f)),
                     Color(0.5f, 0.5f, 0.5f)
@@ -488,11 +488,11 @@ struct Button {
 
     void draw(){
         if(hover){
-            glwDrawRoundedRectGradientFill(cast(float)lx, cast(float)ly, cast(float)lw, cast(float)lh, 8, Color(0.9f, 0.9f, 1.0f), Color(0.7f, 0.7f, 1.0f));
-            glwDrawRoundedRectBorder(lx, ly, lw, lh, 8, Color(0.0f, 0.0f, 0.0f));
+            drawRoundedRectGradientFill(cast(float)lx, cast(float)ly, cast(float)lw, cast(float)lh, 8, Color(0.9f, 0.9f, 1.0f), Color(0.7f, 0.7f, 1.0f));
+            drawRoundedRectBorder(lx, ly, lw, lh, 8, Color(0.0f, 0.0f, 0.0f));
         }else{
-            glwDrawRoundedRectGradientFill(cast(float)lx, cast(float)ly, cast(float)lw, cast(float)lh, 8, Color(0.8f, 0.8f, 1.0f), Color(0.6f, 0.6f, 1.0f));
-            glwDrawRoundedRectBorder(lx, ly, lw, lh, 8, Color(0.0f, 0.0f, 0.0f));
+            drawRoundedRectGradientFill(cast(float)lx, cast(float)ly, cast(float)lw, cast(float)lh, 8, Color(0.8f, 0.8f, 1.0f), Color(0.6f, 0.6f, 1.0f));
+            drawRoundedRectBorder(lx, ly, lw, lh, 8, Color(0.0f, 0.0f, 0.0f));
         }    
             //drawRect(Rect(lx, ly, lw, lh), color);
         

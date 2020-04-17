@@ -1,4 +1,4 @@
-module primitives;
+module primitivesogl;
 
 import bindbc.opengl;
 import bindbc.sdl;
@@ -6,12 +6,9 @@ import bindbc.sdl;
 import types;
 import globals;
 
-enum SOLID;
-enum HOLLOW;
-
 @nogc nothrow:
 
-void resize(int w, int h){
+void _resize(ref int w, ref int h){
     // Set viewport size to be entire OpenGL window.
     glViewport(0, 0, w, h);
 }
@@ -25,7 +22,7 @@ void _glVertex2f(float x, float y){
     glVertex2f(x * 2.0f / cast(float)CUR_WIN_WIDTH - 1.0f, 1.0f - y * 2.0f / cast(float)CUR_WIN_HEIGHT);
 }
 
-void line(Point p1, Point p2, Color cl){
+void _drawLine(ref Point p1, ref Point p2, ref Color cl){
     glBegin(GL_LINES);
         glColor3f(cl.r, cl.g, cl.b);
         _glVertex(p1.x, p1.y);
@@ -33,7 +30,7 @@ void line(Point p1, Point p2, Color cl){
     glEnd();
 }
 
-void drawRect(Filling = HOLLOW)(Rect r, Color cl){
+void _drawRect(Filling = HOLLOW)(ref Rect r, ref Color cl){
     static if(is(Filling == SOLID)){
         glBegin(GL_QUADS);
     }else{
@@ -47,7 +44,7 @@ void drawRect(Filling = HOLLOW)(Rect r, Color cl){
     glEnd();
 }
 
-void renderText(const(char)* message, Color color, int x, int y, int size) {
+void _renderText(ref const(char)* message, ref Color color, ref int x, ref int y, ref int size) {
     import bindbc.sdl.ttf;
 
     glEnable(GL_BLEND);
@@ -102,8 +99,8 @@ static void createRoundedCorners(glwVec2 *arr, int num) {
   }
 }
 
-void glwDrawRoundedRectGradientFill(float x, float y, float width, float height,
-    float radius, Color topColor, Color bottomColor) {
+void _drawRoundedRectGradientFill(ref float x, ref float y, ref float width, ref float height,
+    ref float radius, ref Color topColor, ref Color bottomColor) {
   
   createRoundedCorners(glwRoundedCorners.ptr, GLW_SMALL_ROUNDED_CORNER_SLICES);
   
@@ -171,8 +168,8 @@ static void glwDrawLeftTopVertexs(float left, float top, float right,
   }
 }
 
-void glwDrawRoundedRectBorder(int x, int y, int width, int height,
-    int radius, Color color) {
+void _drawRoundedRectBorder(ref int x, ref int y, ref int width, ref int height,
+    ref int radius, ref Color color) {
   float left = cast(float)x;
   float top = cast(float)y;
   float bottom = cast(float)y + height - 1;

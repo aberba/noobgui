@@ -2,6 +2,9 @@ module types;
 
 import std.stdint;
 
+enum SOLID;
+enum HOLLOW;
+
 struct Point {
     int x;
     int y;
